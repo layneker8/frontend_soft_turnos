@@ -1,21 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from '@/components/auth/Login';
-import Home from '@/components/dashboard/Home';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import ToastContainer from '@/components/common/ToastContainer';
-import ViewTurnos from './components/turnos/viewTurnos';
-import ViewAsignacionTurnos from './components/turnos/viewAsignacionTurnos';
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate,
+} from "react-router-dom";
+import Login from "@/components/auth/Login";
+import Home from "@/components/dashboard/Home";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ToastContainer from "@/components/common/ToastContainer";
 
 function App() {
 	return (
 		<Router>
 			<Routes>
 				<Route path="/login" element={<Login />} />
-				<Route path="/home" element={<Home />} />
-				<Route path="/view-turnos" element={<ViewTurnos />} />
-				<Route path="/asignacion-turnos" element={<ViewAsignacionTurnos />} />
+				{/* Todas las rutas del dashboard usan el mismo layout (Home) */}
 				<Route
-					path="/dashboard"
+					path="/dashboard/*"
 					element={
 						<ProtectedRoute>
 							<Home />
@@ -23,6 +24,7 @@ function App() {
 					}
 				/>
 				<Route path="/" element={<Navigate to="/login" replace />} />
+				<Route path="*" element={<Navigate to="/login" replace />} />
 			</Routes>
 			<ToastContainer />
 		</Router>

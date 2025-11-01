@@ -49,7 +49,7 @@ const Login: React.FC = () => {
 				title: "¡Bienvenido!",
 				message: "Has iniciado sesión correctamente",
 			});
-			// navigate("/dashboard", { replace: true });
+			navigate("/dashboard", { replace: true });
 		}
 		if (result.status === 401) {
 			addToast({

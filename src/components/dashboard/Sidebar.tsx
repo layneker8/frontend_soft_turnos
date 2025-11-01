@@ -1,10 +1,12 @@
 
 
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/stores/appStore';
 
 const Sidebar: React.FC = () => {
     const { sidebarOpen, toggleSidebar } = useAppStore();
+    const location = useLocation();
 
     return (
         <>
@@ -34,31 +36,90 @@ const Sidebar: React.FC = () => {
                 </div>
                 <div className="flex flex-col gap-8">
                     <nav className="flex flex-col gap-2">
-                        <a className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg bg-primary/20 dark:bg-primary/30 px-3 py-2 text-primary"
-                            href="#">
+                        <Link 
+                            to="/dashboard"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
                             <span className='material-symbols-rounded'>dashboard</span>
                             <span className='sm:hidden md:block'>Inicio</span>
-                        </a>
-                        <a className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg text-secondary dark:bg-primary/30 px-3 py-2 "
-                            href="#">
+                        </Link>
+                        <Link 
+                            to="/dashboard/turnos"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/turnos' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
+                            <span className='material-symbols-rounded'>schedule</span>
+                            <span className='sm:hidden md:block'>Ver Turnos</span>
+                        </Link>
+                        <Link 
+                            to="/dashboard/asignacion-turnos"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/asignacion-turnos' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
+                            <span className='material-symbols-rounded'>assignment</span>
+                            <span className='sm:hidden md:block'>Asignar Turnos</span>
+                        </Link>
+                        <Link 
+                            to="/dashboard/usuarios"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/usuarios' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
                             <span className='material-symbols-rounded'>account_circle</span>
                             <span className='sm:hidden md:block'>Usuarios</span>
-                        </a>
-                        <a className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg text-secondary dark:bg-primary/30 px-3 py-2 "
-                            href="#">
+                        </Link>
+                        <Link 
+                            to="/dashboard/servicios"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/servicios' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
                             <span className='material-symbols-rounded'>home_repair_service</span>
                             <span className='sm:hidden md:block'>Servicios</span>
-                        </a>
-                        <a className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg text-secondary dark:bg-primary/30 px-3 py-2 "
-                            href="#">
+                        </Link>
+                        <Link 
+                            to="/dashboard/pacientes"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/pacientes' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
                             <span className='material-symbols-rounded'>group</span>
                             <span className='sm:hidden md:block'>Pacientes</span>
-                        </a>
-                        <a className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg text-secondary dark:bg-primary/30 px-3 py-2 "
-                            href="#">
+                        </Link>
+                        <Link 
+                            to="/dashboard/configuracion"
+                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                location.pathname === '/dashboard/configuracion' 
+                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                        >
                             <span className='material-symbols-rounded'>settings</span>
                             <span className='sm:hidden md:block'>Configuración</span>
-                        </a>
+                        </Link>
                     </nav>
                 </div>
             </aside>

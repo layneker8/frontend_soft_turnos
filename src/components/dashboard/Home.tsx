@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 // import { useAppStore } from '@/stores/appStore';
 import { useToastStore } from "@/stores/toastStore";
@@ -8,6 +8,10 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import Footer from "./Footer";
+import DashboardMain from "./DashboardMain";
+import ViewTurnos from "../turnos/viewTurnos";
+import ViewAsignacionTurnos from "../turnos/viewAsignacionTurnos";
+import NotFound404 from "../common/NotFound404";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -50,8 +54,33 @@ const Home: React.FC = () => {
 					toggleDarkMode={toggleDarkMode}
 					handleLogout={handleLogout}
 				/>
-				{/* Main Content */}
-				<MainContent />
+				{/* Main Content con rutas anidadas */}
+				<MainContent>
+					<Routes>
+						{/* Ruta por defecto del dashboard */}
+						<Route index element={<DashboardMain />} />
+						{/* Rutas específicas */}
+						<Route path="turnos" element={<ViewTurnos />} />
+						<Route path="asignacion-turnos" element={<ViewAsignacionTurnos />} />
+						{/* Puedes agregar más rutas aquí */}
+						<Route path="usuarios" element={<div>Vista de Usuarios - Próximamente</div>} />
+						<Route
+							path="servicios"
+							element={<div>Vista de Servicios - Próximamente</div>}
+						/>
+						<Route
+							path="pacientes"
+							element={<div>Vista de Pacientes - Próximamente</div>}
+						/>
+						<Route
+							path="configuracion"
+							element={<div>Vista de Configuración - Próximamente</div>}
+						/>
+						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
+						<Route path="*" element={<NotFound404 />} />
+					</Routes>
+				</MainContent>
+
 				{/* Footer */}
 				<Footer />
 			</div>
