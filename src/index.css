@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-script: Public Sans, system-ui, sans-serif;
+  --color-primary: #ff961d;
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-500: #ff961d;
+  --color-primary-600: #ea580c;
+  --color-primary-700: #c2410c;
+  --color-secondary: #95969d;
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-500: #95969d;
+  --color-secondary-600: #64748b;
+  --color-secondary-700: #475569;
+  --color-background-light: #f8f7f5;
+  --color-background-dark: #231a0f;
+  --color-background-default: #f6f6f0;
+  --radius-default: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+}
+
+/* Reset específico para permitir que Tailwind funcione */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Public Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Estilos personalizados para el placeholder */
+/* .form-input::placeholder {
+  color: rgb(149 150 157);
+} */
+@keyframes progress-animation {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+.progress-bar {
+  animation: progress-animation 10s linear infinite;
+}

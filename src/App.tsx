@@ -1,0 +1,32 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from '@/components/auth/Login';
+import Home from '@/components/dashboard/Home';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ToastContainer from '@/components/common/ToastContainer';
+import ViewTurnos from './components/turnos/viewTurnos';
+import ViewAsignacionTurnos from './components/turnos/viewAsignacionTurnos';
+
+function App() {
+	return (
+		<Router>
+			<Routes>
+				<Route path="/login" element={<Login />} />
+				<Route path="/home" element={<Home />} />
+				<Route path="/view-turnos" element={<ViewTurnos />} />
+				<Route path="/asignacion-turnos" element={<ViewAsignacionTurnos />} />
+				<Route
+					path="/dashboard"
+					element={
+						<ProtectedRoute>
+							<Home />
+						</ProtectedRoute>
+					}
+				/>
+				<Route path="/" element={<Navigate to="/login" replace />} />
+			</Routes>
+			<ToastContainer />
+		</Router>
+	);
+}
+
+export default App;

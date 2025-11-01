@@ -1,0 +1,17 @@
+# .dockerignore específico para frontend
+node_modules
+dist
+build
+coverage
+logs
+*.log
+.DS_Store
+.git/
+.gitignore
+README.md
+docker-compose*.yml
+Dockerfile*
+
+# Mantener .env para la configuración
+!.env
+!.env.example
