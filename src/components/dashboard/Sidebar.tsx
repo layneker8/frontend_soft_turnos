@@ -3,6 +3,165 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/stores/appStore';
+import { usePermissions } from '@/hooks/usePermissions';
+import { ALL_PERMISSIONS } from '@/constants/permissions';
+
+// Definir la estructura de elementos del sidebar
+interface SidebarItem {
+    label: string;
+    path: string;
+    icon: string;
+    module: string; // Para verificar permisos
+    // Opciones de permisos (usar solo una)
+    requiredPermission?: string;           // Un solo permiso
+    requiredPermissions?: {                // Múltiples permisos
+        all?: string[];                    // Todos requeridos (AND)
+        any?: string[];                    // Cualquiera requerido (OR)
+        not?: string[];                    // No debe tener estos
+    };
+}
+
+const sidebarItems: SidebarItem[] = [
+    {
+        label: 'Turnos',
+        path: '/dashboard/turnos',
+        icon: 'schedule',
+        module: 'turnos',
+        requiredPermission: 'turnos.view'
+    },
+    {
+        label: 'Usuarios',
+        path: '/dashboard/usuarios',
+        icon: 'account_circle',
+        module: 'usuarios',
+        requiredPermissions:{
+            any: [ALL_PERMISSIONS.USUARIOS.READ, ALL_PERMISSIONS.USUARIOS.MANAGE]
+        }
+    },
+    {
+        label: 'Sedes',
+        path: '/dashboard/sedes',
+        icon: 'account_circle',
+        module: 'sedes',
+        requiredPermissions:{
+            any:[ ALL_PERMISSIONS.SEDES.READ, ALL_PERMISSIONS.SEDES.MANAGE ]
+        }
+    },
+    {
+        label: 'Servicios',
+        path: '/dashboard/servicios',
+        icon: 'home_repair_service',
+        module: 'servicios',
+        requiredPermissions: {
+            any: [ALL_PERMISSIONS.SERVICIOS.READ, ALL_PERMISSIONS.SERVICIOS.MANAGE]
+        }
+    },
+    {
+        label: 'Prioridades',
+        path: '/dashboard/prioridades',
+        icon: 'home_repair_service',
+        module: 'prioridades',
+        requiredPermissions: {
+            any: [ALL_PERMISSIONS.PRIORIDAD.READ, ALL_PERMISSIONS.PRIORIDAD.MANAGE]
+        }
+    },
+    {
+        label: 'Cubículos',
+        path: '/dashboard/cubiculos',
+        icon: 'home_repair_service',
+        module: 'cubiculos',
+        requiredPermissions: {
+            any: [ALL_PERMISSIONS.CUBICULOS.READ, ALL_PERMISSIONS.CUBICULOS.MANAGE]
+        }
+    },
+    {
+        label: 'Pacientes',
+        path: '/dashboard/pacientes',
+        icon: 'group',
+        module: 'pacientes',
+        requiredPermissions:{
+            any:[ALL_PERMISSIONS.CLIENTES.READ, ALL_PERMISSIONS.CLIENTES.MANAGE]
+        }
+    },
+    {
+        label: 'Configuración',
+        path: '/dashboard/configuracion',
+        icon: 'settings',
+        module: 'configuracion',
+        requiredPermissions: {
+            all: [ALL_PERMISSIONS.ADMIN.MANAGE],
+            any: [ALL_PERMISSIONS.ADMIN.SYSTEM_CONFIG]
+        }
+    }
+];
+
+// Componente para renderizar un elemento del sidebar
+const SidebarLink: React.FC<{ item: SidebarItem; isActive: boolean; onClick: () => void }> = ({ 
+    item, 
+    isActive, 
+    onClick 
+}) => {
+    const { checkUserPermission, checkComplexPermissions } = usePermissions();
+    const [hasPermission, setHasPermission] = React.useState<boolean | null>(null);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const checkPermission = async () => {
+            setLoading(true);
+            try {
+                let result = false;
+
+                if (item.requiredPermissions) {
+                    // Usar verificación compleja si se especifican múltiples permisos
+                    result = await checkComplexPermissions(item.requiredPermissions);
+                } else {
+                    // Usar verificación simple si solo hay un permiso
+                    const permission = item.requiredPermission || `${item.module}.read`;
+                    result = await checkUserPermission(permission);
+                }
+
+                setHasPermission(result);
+            } catch (error) {
+                console.error(`Error verificando permisos para ${item.label}:`, error);
+                setHasPermission(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        checkPermission();
+    }, [item, checkUserPermission, checkComplexPermissions]);
+
+    // No mostrar mientras carga
+    if (loading) {
+        return (
+            <div className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 animate-pulse">
+                <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="sm:hidden md:block w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+        );
+    }
+
+    // No mostrar si no tiene permisos
+    if (!hasPermission) {
+        return null;
+    }
+
+    return (
+        <Link 
+            to={item.path}
+            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+                isActive 
+                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+            onClick={onClick}
+        >
+            <span className='material-symbols-rounded'>{item.icon}</span>
+            <span className='sm:hidden md:block'>{item.label}</span>
+        </Link>
+    );
+};
 
 const Sidebar: React.FC = () => {
     const { sidebarOpen, toggleSidebar } = useAppStore();
@@ -36,6 +195,7 @@ const Sidebar: React.FC = () => {
                 </div>
                 <div className="flex flex-col gap-8">
                     <nav className="flex flex-col gap-2">
+                        {/* Enlace al Dashboard principal - siempre visible */}
                         <Link 
                             to="/dashboard"
                             className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
@@ -48,78 +208,16 @@ const Sidebar: React.FC = () => {
                             <span className='material-symbols-rounded'>dashboard</span>
                             <span className='sm:hidden md:block'>Inicio</span>
                         </Link>
-                        <Link 
-                            to="/dashboard/turnos"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/turnos' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>schedule</span>
-                            <span className='sm:hidden md:block'>Ver Turnos</span>
-                        </Link>
-                        <Link 
-                            to="/dashboard/asignacion-turnos"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/asignacion-turnos' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>assignment</span>
-                            <span className='sm:hidden md:block'>Asignar Turnos</span>
-                        </Link>
-                        <Link 
-                            to="/dashboard/usuarios"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/usuarios' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>account_circle</span>
-                            <span className='sm:hidden md:block'>Usuarios</span>
-                        </Link>
-                        <Link 
-                            to="/dashboard/servicios"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/servicios' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>home_repair_service</span>
-                            <span className='sm:hidden md:block'>Servicios</span>
-                        </Link>
-                        <Link 
-                            to="/dashboard/pacientes"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/pacientes' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>group</span>
-                            <span className='sm:hidden md:block'>Pacientes</span>
-                        </Link>
-                        <Link 
-                            to="/dashboard/configuracion"
-                            className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
-                                location.pathname === '/dashboard/configuracion' 
-                                    ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                                    : 'text-secondary hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
-                        >
-                            <span className='material-symbols-rounded'>settings</span>
-                            <span className='sm:hidden md:block'>Configuración</span>
-                        </Link>
+
+                        {/* Enlaces con permisos dinámicos */}
+                        {sidebarItems.map((item) => (
+                            <SidebarLink
+                                key={item.path}
+                                item={item}
+                                isActive={location.pathname === item.path}
+                                onClick={() => sidebarOpen && window.innerWidth < 640 && toggleSidebar()}
+                            />
+                        ))}
                     </nav>
                 </div>
             </aside>

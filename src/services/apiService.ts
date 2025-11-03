@@ -32,7 +32,7 @@ export class ApiService {
 		try {
 			const response = await fetch(`${this.baseURL}${endpoint}`, {
 				method: "GET",
-				credentials: "include", // Incluir cookies JWT automáticamente
+				credentials: "include",
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -118,6 +118,33 @@ export class ApiService {
 			return response !== null;
 		} catch {
 			return false;
+		}
+	}
+
+	// Verificar permisos específicos
+	async checkPermission(permission: string): Promise<{ hasPermission: boolean }> {
+		try {
+			const response = await this.get(
+				`/api/permissions/check?permission=${encodeURIComponent(permission)}`
+			);
+			return { hasPermission: response.hasPermission || false };
+		} catch (error) {
+			console.error("Error verificando permiso:", error);
+			return { hasPermission: false };
+		}
+	}
+
+	// Obtener permisos completos del usuario (solo cuando sea necesario)
+	async getUserPermissions(roleId: number): Promise<string[]> {
+		try {
+			const response = await this.get(`/api/permissions/by-role/${roleId}`);
+			const permissions = response.data.map(
+				(perm: { nombre: string }) => perm.nombre
+			);
+			return permissions || [];
+		} catch (error) {
+			console.error("Error obteniendo permisos:", error);
+			return [];
 		}
 	}
 

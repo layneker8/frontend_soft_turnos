@@ -11,6 +11,8 @@ import Footer from "./Footer";
 import DashboardMain from "./DashboardMain";
 import ViewTurnos from "../turnos/viewTurnos";
 import ViewAsignacionTurnos from "../turnos/viewAsignacionTurnos";
+import MultiplePermissionsExample from "../examples/MultiplePermissionsExample";
+import SecurePermissionsExample from "../examples/SecurePermissionsExample";
 import NotFound404 from "../common/NotFound404";
 
 const Home: React.FC = () => {
@@ -76,6 +78,10 @@ const Home: React.FC = () => {
 							path="configuracion"
 							element={<div>Vista de Configuración - Próximamente</div>}
 						/>
+						{/* Ejemplo de múltiples permisos */}
+						<Route path="cubiculos" element={<MultiplePermissionsExample />} />
+						{/* Ejemplo de seguridad en permisos */}
+						<Route path="sedes" element={<SecurePermissionsExample />} />
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />
 					</Routes>

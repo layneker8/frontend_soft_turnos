@@ -1,17 +1,17 @@
-import { useEffect } from 'react';
-import { useAppStore } from '@/stores/appStore';
+import { useEffect } from "react";
+import { useAppStore } from "@/stores/appStore";
 
 export const useDarkMode = () => {
-    const { darkMode, toggleDarkMode } = useAppStore();
+	const { darkMode, toggleDarkMode } = useAppStore();
 
-    useEffect(() => {
-        // Aplicar el tema al documento
-        if (darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [darkMode]);
+	useEffect(() => {
+		// Aplicar el tema al documento
+		if (darkMode) {
+			document.documentElement.setAttribute("data-theme", "dark");
+		} else {
+			document.documentElement.removeAttribute("data-theme");
+		}
+	}, [darkMode]);
 
-    return { darkMode, toggleDarkMode };
+	return { darkMode, toggleDarkMode };
 };
