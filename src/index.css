@@ -37,6 +37,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button {
+  cursor: pointer;
+}
+
 /* Estilos personalizados para el placeholder */
 /* .form-input::placeholder {
   color: rgb(149 150 157);

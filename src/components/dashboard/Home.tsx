@@ -14,6 +14,7 @@ import ViewAsignacionTurnos from "../turnos/viewAsignacionTurnos";
 import MultiplePermissionsExample from "../examples/MultiplePermissionsExample";
 import SecurePermissionsExample from "../examples/SecurePermissionsExample";
 import NotFound404 from "../common/NotFound404";
+import ViewUsers from "../users/viewUsers";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -63,9 +64,12 @@ const Home: React.FC = () => {
 						<Route index element={<DashboardMain />} />
 						{/* Rutas específicas */}
 						<Route path="turnos" element={<ViewTurnos />} />
-						<Route path="asignacion-turnos" element={<ViewAsignacionTurnos />} />
+						<Route
+							path="asignacion-turnos"
+							element={<ViewAsignacionTurnos />}
+						/>
 						{/* Puedes agregar más rutas aquí */}
-						<Route path="usuarios" element={<div>Vista de Usuarios - Próximamente</div>} />
+						<Route path="usuarios" element={<ViewUsers />} />
 						<Route
 							path="servicios"
 							element={<div>Vista de Servicios - Próximamente</div>}

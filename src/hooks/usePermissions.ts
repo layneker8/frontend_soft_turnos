@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores/authStore";
 
 /**
@@ -29,22 +29,26 @@ export const usePermissions = () => {
 	 * Verificar un permiso específico (síncrono, desde caché)
 	 * Usar para elementos de UI, navegación, etc.
 	 */
-	const checkUserPermission = (permission: string): boolean => {
-		return checkPermission(permission);
-	};
+	const checkUserPermission = useCallback(
+		(permission: string): boolean => {
+			return checkPermission(permission);
+		},
+		[checkPermission]
+	);
 
 	/**
 	 * Verificar múltiples permisos al mismo tiempo (síncrono)
 	 */
-	const checkMultiplePermissions = (
-		permissions: string[]
-	): Record<string, boolean> => {
-		const results: Record<string, boolean> = {};
-		permissions.forEach((permission) => {
-			results[permission] = checkUserPermission(permission);
-		});
-		return results;
-	};
+	const checkMultiplePermissions = useCallback(
+		(permissions: string[]): Record<string, boolean> => {
+			const results: Record<string, boolean> = {};
+			permissions.forEach((permission) => {
+				results[permission] = checkUserPermission(permission);
+			});
+			return results;
+		},
+		[checkUserPermission]
+	);
 
 	/**
 	 * Verificar que el usuario tenga TODOS los permisos especificados (AND)
@@ -55,20 +59,27 @@ export const usePermissions = () => {
 		}
 
 		const results = checkMultiplePermissions(permissions);
-		return Object.values(results).every((hasPermission) => hasPermission === true);
+		return Object.values(results).every(
+			(hasPermission) => hasPermission === true
+		);
 	};
 
 	/**
 	 * Verificar que el usuario tenga AL MENOS UNO de los permisos especificados (OR)
 	 */
-	const hasAnyPermission = (permissions: string[]): boolean => {
-		if (!isAuthenticated || permissions.length === 0) {
-			return false;
-		}
+	const hasAnyPermission = useCallback(
+		(permissions: string[]): boolean => {
+			if (!isAuthenticated || permissions.length === 0) {
+				return false;
+			}
 
-		const results = checkMultiplePermissions(permissions);
-		return Object.values(results).some((hasPermission) => hasPermission === true);
-	};
+			const results = checkMultiplePermissions(permissions);
+			return Object.values(results).some(
+				(hasPermission) => hasPermission === true
+			);
+		},
+		[checkMultiplePermissions, isAuthenticated]
+	);
 
 	/**
 	 * Verificar permisos con lógica compleja (síncrono)

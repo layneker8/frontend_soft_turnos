@@ -12,7 +12,7 @@ export interface EnvConfig {
 
 /* Tipos para autenticación */
 export interface User {
-	id: string;
+	id: number;
 	username: string;
 	nombre: string;
 	identificacion: string;
@@ -63,6 +63,27 @@ export interface Toast {
 // interface ImportMeta {
 //     readonly env: ImportMetaEnv;
 // }
+
+/* Tipos para sedes y cubículos */
+export interface Sede {
+	id_sede: number;
+	nombre_sede: string;
+	created_at: string;
+}
+
+export interface Cubiculo {
+	id: number;
+	nombre: string;
+	estado: boolean;
+	created_at: string;
+}
+
+export interface Rol {
+	id: number;
+	nombre: string;
+	descripcion: string;
+	created_at: string;
+}
 
 // Tipos para eventos de Socket.IO
 export interface SocketEvents {

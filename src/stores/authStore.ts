@@ -27,6 +27,7 @@ interface AuthState {
 	checkPermission: (permission: string) => boolean; // Ahora es síncrona
 	checkCriticalPermission: (permission: string) => Promise<boolean>; // Para permisos críticos
 	getUserPermissions: () => string[]; // Obtener todos los permisos
+	validateSession: () => Promise<void>; // Validar sesión activa
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -71,13 +72,17 @@ export const useAuthStore = create<AuthState>()(
 					} else {
 						set({
 							isLoading: false,
-							error: data.message || data.error || "Usuario o contraseña incorrectos",
+							error:
+								data.message ||
+								data.error ||
+								"Usuario o contraseña incorrectos",
 						});
 					}
 
 					return data;
 				} catch {
-					const errorMessage = "Error de conexión. Por favor, inténtelo de nuevo.";
+					const errorMessage =
+						"Error de conexión. Por favor, inténtelo de nuevo.";
 					set({
 						isLoading: false,
 						error: errorMessage,
@@ -209,6 +214,26 @@ export const useAuthStore = create<AuthState>()(
 				} catch (error) {
 					console.error("Error verificando permiso crítico:", error);
 					return false;
+				}
+			},
+
+			// validar que exista todavia la sessión activa al iniciar la app
+			validateSession: async (): Promise<void> => {
+				try {
+					const isAuth = await apiService.checkAuth();
+					if (!isAuth) {
+						// Si no está autenticado, limpiar el estado
+						set({
+							user: null,
+							csrfToken: null,
+							isAuthenticated: false,
+							error: null,
+							userPermissions: [],
+							permissionsLoaded: false,
+						});
+					}
+				} catch (error) {
+					console.error("Error validando sesión:", error);
 				}
 			},
 		}),

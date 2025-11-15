@@ -74,6 +74,8 @@ export class ApiService {
 				body: data ? JSON.stringify(data) : undefined,
 			});
 
+			const value = await response.json();
+
 			if (!response.ok) {
 				if (response.status === 401) {
 					throw new Error("No autorizado");
@@ -84,10 +86,19 @@ export class ApiService {
 					// Reintentar una vez
 					return this.requestWithCSRF(endpoint, method, data);
 				}
-				throw new Error(`HTTP error! status: ${response.status}`);
+				if (response.status === 400) {
+					if (value && typeof value === "object" && "details" in value) {
+						const errores = value.details
+							.map((error: { message: string }) => error.message)
+							.join(", ");
+						throw new Error(`${value.error}: ${errores}`);
+					}
+					throw new Error(value.error || "Error en la solicitud");
+				}
+				throw new Error(`HTTP error!!! status: ${response.status}`);
 			}
 
-			return await response.json();
+			return value;
 		} catch (error) {
 			console.error(`Error en ${method} ${endpoint}:`, error);
 			throw error;
@@ -115,14 +126,16 @@ export class ApiService {
 	async checkAuth() {
 		try {
 			const response = await this.get("/api/auth/me");
-			return response !== null;
+			return response;
 		} catch {
 			return false;
 		}
 	}
 
 	// Verificar permisos específicos
-	async checkPermission(permission: string): Promise<{ hasPermission: boolean }> {
+	async checkPermission(
+		permission: string
+	): Promise<{ hasPermission: boolean }> {
 		try {
 			const response = await this.get(
 				`/api/permissions/check?permission=${encodeURIComponent(permission)}`
