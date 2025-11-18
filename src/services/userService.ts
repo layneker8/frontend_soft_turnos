@@ -1,19 +1,14 @@
+import type { FullSede } from "@/@types/sedes";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
-import type { Sede, Cubiculo, Rol } from "@/@types";
+import type { Rol } from "@/@types";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
+// import type { FullCubiculo } from "@/@types/cubiculos";
 
 interface ApiResponse<T> {
 	success: boolean;
 	total?: number;
-	users: T;
-	error?: string;
-}
-
-interface ApiResponseSede<T> {
-	success: boolean;
-	total?: number;
-	sedes: T;
+	data: T;
 	error?: string;
 }
 
@@ -22,13 +17,6 @@ interface ApiResponseRoles<T> {
 	message?: string;
 	count?: number;
 	data: T;
-	error?: string;
-}
-
-interface ApiResponseCubiculo<T> {
-	success: boolean;
-	total?: number;
-	cubiculos: T;
 	error?: string;
 }
 
@@ -42,7 +30,7 @@ export class UserService {
 			const response = (await apiService.get("/api/users")) as ApiResponse<
 				FullUser[]
 			>;
-			return response.users || [];
+			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo usuarios:", error);
 			throw error;
@@ -58,7 +46,7 @@ export class UserService {
 			const response = (await apiService.get(
 				`/api/users/${id}`
 			)) as ApiResponse<FullUser>;
-			return response.users;
+			return response.data;
 		} catch (error) {
 			console.error(`Error obteniendo usuario ${id}:`, error);
 			throw error;
@@ -78,7 +66,7 @@ export class UserService {
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error creando usuario");
 			}
-			return response.users;
+			return response.data;
 		} catch (error) {
 			console.error("Error creando usuario:", error);
 			throw error;
@@ -98,7 +86,7 @@ export class UserService {
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error actualizando usuario");
 			}
-			return response.users;
+			return response.data;
 		} catch (error) {
 			console.error(`Error actualizando usuario ${id}:`, error);
 			throw error;
@@ -122,12 +110,12 @@ export class UserService {
 	 * Obtener todas las sedes
 	 * Requiere permisos: sedes.read o sedes.manage
 	 */
-	async getAllSedes(): Promise<Sede[]> {
+	async getAllSedes(): Promise<FullSede[]> {
 		try {
-			const response = (await apiService.get("/api/sedes")) as ApiResponseSede<
-				Sede[]
-			>;
-			return response.sedes || [];
+			const response = (await apiService.get(
+				"/api/sedes/available"
+			)) as ApiResponse<FullSede[]>;
+			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo sedes:", error);
 			throw error;
@@ -138,18 +126,17 @@ export class UserService {
 	 * Obtener cubículos de una sede específica
 	 * Requiere permisos: sedes.read o sedes.manage
 	 */
-	async getCubiculosBySede(sedeId: number): Promise<Cubiculo[]> {
-		try {
-			const response = (await apiService.get(
-				`/api/cubiculos/bysede/${sedeId}`
-			)) as ApiResponseCubiculo<Cubiculo[]>;
-
-			return response.cubiculos || [];
-		} catch (error) {
-			console.error(`Error obteniendo cubículos de sede ${sedeId}:`, error);
-			throw error;
-		}
-	}
+	// async getCubiculosBySede(sedeId: number): Promise<FullCubiculo[]> {
+	// 	try {
+	// 		const response = (await apiService.get(
+	// 			`/api/cubiculos/bysede/${sedeId}`
+	// 		)) as ApiResponse<FullCubiculo[]>;
+	// 		return response.data || [];
+	// 	} catch (error) {
+	// 		console.error(`Error obteniendo cubículos de sede ${sedeId}:`, error);
+	// 		throw error;
+	// 	}
+	// }
 
 	/**
 	 * Obtener todos los roles disponibles

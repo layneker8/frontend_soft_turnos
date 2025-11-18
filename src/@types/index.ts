@@ -59,14 +59,6 @@ export interface Toast {
 	message?: string;
 	duration?: number;
 }
-
-export interface Cubiculo {
-	id: number;
-	nombre: string;
-	estado: boolean;
-	created_at: string;
-}
-
 export interface Rol {
 	id: number;
 	nombre: string;

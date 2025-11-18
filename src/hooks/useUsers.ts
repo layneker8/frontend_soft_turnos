@@ -4,11 +4,12 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useToastStore } from "@/stores/toastStore";
 import { USER_PERMISSIONS, SEDE_PERMISSIONS } from "@/constants/permissions";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
-import type { Sede, Rol } from "@/@types/index";
+import type { Rol } from "@/@types/index";
+import type { FullSede } from "@/@types/sedes";
 
 export const useUsers = () => {
 	const [users, setUsers] = useState<FullUser[]>([]);
-	const [sedes, setSedes] = useState<Sede[]>([]);
+	const [sedes, setSedes] = useState<FullSede[]>([]);
 	const [roles, setRoles] = useState<Rol[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);

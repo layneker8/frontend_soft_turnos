@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import type { Sede, Rol } from "@/@types";
+import type { Rol } from "@/@types";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
 import Modal from "../common/Modal";
+import type { FullSede } from "@/@types/sedes";
 
 interface UserModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSubmit: (userData: CreateUserData | UpdateUserData) => Promise<boolean>;
 	user?: FullUser | null;
-	sedes: Sede[];
+	sedes: FullSede[];
 	roles: Rol[];
 	loading?: boolean;
 	viewMode?: boolean;
