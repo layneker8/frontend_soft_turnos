@@ -82,10 +82,17 @@ const Home: React.FC = () => {
 							path="configuracion"
 							element={<div>Vista de Configuración - Próximamente</div>}
 						/>
-						{/* Ejemplo de múltiples permisos */}
 						<Route path="cubiculos" element={<ViewCubiculo />} />
-						{/* Ejemplo de seguridad en permisos */}
 						<Route path="sedes" element={<ViewSedes />} />
+						<Route
+							path="roles"
+							element={<div>Vista de Roles - Próximamente</div>}
+						/>
+						<Route
+							path="prioridades"
+							element={<div>Vista de Prioridades - Próximamente</div>}
+						/>
+
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />
 					</Routes>

@@ -78,13 +78,13 @@ export const SEDE_PERMISSIONS = {
 	MANAGE: "sedes.manage",
 };
 
-export const    PRIORIDADES_PERMISSIONS={
-    	CREATE: "prioridad.create",
+export const PRIORIDADES_PERMISSIONS = {
+	CREATE: "prioridad.create",
 	READ: "prioridad.read",
 	UPDATE: "prioridad.update",
 	DELETE: "prioridad.delete",
 	MANAGE: "prioridad.manage",
-}
+};
 
 // Colección de todos los permisos para fácil acceso
 export const ALL_PERMISSIONS = {
@@ -96,5 +96,5 @@ export const ALL_PERMISSIONS = {
 	CUBICULOS: CUBICULO_PERMISSIONS,
 	CLIENTES: CLIENT_PERMISSIONS,
 	REPORT: REPORT_PERMISSIONS,
-    PRIORIDAD: PRIORIDADES_PERMISSIONS
+	PRIORIDAD: PRIORIDADES_PERMISSIONS,
 };
