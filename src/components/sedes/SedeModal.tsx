@@ -1,61 +1,52 @@
 import React, { useEffect, useState } from "react";
-import type {
-	FullCubiculo,
-	CreateCubiculoData,
-	UpdateCubiculoData,
-} from "@/@types/cubiculos";
-import Modal from "../common/Modal";
-import type { FullSede } from "@/@types/sedes";
+import type { FullSede, CreateSedeData, UpdateSedeData } from "@/@types/sedes";
+import Modal from "@/components/common/Modal";
 
-interface CubiculoModalProps {
+interface SedeModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSubmit: (data: CreateCubiculoData | UpdateCubiculoData) => Promise<boolean>;
-	cubiculo?: FullCubiculo | null;
-	sedes: FullSede[];
+	onSubmit: (data: CreateSedeData | UpdateSedeData) => Promise<boolean>;
+	sede?: FullSede | null;
 	loading?: boolean;
 	viewMode?: boolean;
 	serverError?: string;
 	serverFieldErrors?: Record<string, string>;
 }
 
-const CubiculoModal: React.FC<CubiculoModalProps> = ({
+const SedeModal: React.FC<SedeModalProps> = ({
 	isOpen,
 	onClose,
 	onSubmit,
-	cubiculo,
-	sedes,
+	sede,
 	loading = false,
 	viewMode = false,
 	serverError,
 	serverFieldErrors,
 }) => {
 	const [formData, setFormData] = useState({
-		nombre: "",
-		id_sede: 0,
-		estado: true,
+		nombre_sede: "",
+		direccion: "",
+		estado_sede: true,
 	});
-
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	const isEditing = !!cubiculo;
+	const isEditing = !!sede;
 
 	useEffect(() => {
 		if (isOpen) {
-			if (cubiculo) {
+			if (sede) {
 				setFormData({
-					nombre: cubiculo.nombre || "",
-					id_sede: cubiculo.sede_id || 0,
-					estado: cubiculo.estado,
+					nombre_sede: sede.nombre_sede || "",
+					direccion: sede.direccion || "",
+					estado_sede: sede.estado_sede,
 				});
 			} else {
-				setFormData({ nombre: "", id_sede: 0, estado: true });
+				setFormData({ nombre_sede: "", direccion: "", estado_sede: true });
 			}
 			setErrors({});
 		}
-	}, [isOpen, cubiculo]);
+	}, [isOpen, sede]);
 
-	// Aplicar errores de backend sin limpiar el formulario
 	useEffect(() => {
 		if (!isOpen) return;
 		if (serverFieldErrors && Object.keys(serverFieldErrors).length > 0) {
@@ -65,20 +56,11 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {};
-
 		const regexNombre = /^[a-zA-Z0-9Á-ÿÑñ\s-_]{2,}$/;
-
-		if (!formData.nombre.trim()) {
-			newErrors.nombre = "El nombre es requerido";
-		} else if (!regexNombre.test(formData.nombre)) {
-			newErrors.nombre =
-				"El nombre debe tener al menos 2 caracteres y solo letras y números";
-		}
-
-		// id_sede
-		if (!sedes.find((s) => s.id_sede === formData.id_sede)) {
-			newErrors.id_sede = "La sede seleccionada no es válida";
-		}
+		if (!formData.nombre_sede.trim())
+			newErrors.nombre_sede = "El nombre es requerido";
+		else if (!regexNombre.test(formData.nombre_sede))
+			newErrors.nombre_sede = "El nombre debe tener al menos 2 caracteres";
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
@@ -86,13 +68,11 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!validateForm()) return;
-
 		const data = {
-			nombre: formData.nombre,
-			id_sede: formData.id_sede,
-			estado: formData.estado,
-		};
-
+			nombre_sede: formData.nombre_sede,
+			direccion: formData.direccion,
+			estado_sede: formData.estado_sede,
+		} as CreateSedeData | UpdateSedeData;
 		const success = await onSubmit(data);
 		if (success) onClose();
 	};
@@ -104,7 +84,6 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 					{serverError}
 				</div>
 			)}
-			{/* Nombre */}
 			<div>
 				<label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-1">
 					Nombre *
@@ -112,60 +91,45 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 				<input
 					type="text"
 					disabled={viewMode || loading}
-					value={formData.nombre}
+					value={formData.nombre_sede}
 					onChange={(e) =>
-						setFormData((p) => ({ ...p, nombre: e.target.value }))
+						setFormData((p) => ({ ...p, nombre_sede: e.target.value }))
 					}
 					className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-						errors.nombre
+						errors.nombre_sede
 							? "border-red-300 focus:ring-red-500 focus:border-red-500"
 							: "border-gray-300 focus:ring-primary focus:border-primary"
 					} dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed`}
 				/>
-				{errors.nombre && (
-					<p className="mt-1 text-sm text-red-600">{errors.nombre}</p>
+				{errors.nombre_sede && (
+					<p className="mt-1 text-sm text-red-600">{errors.nombre_sede}</p>
 				)}
 			</div>
 
-			{/* Sede*/}
 			<div>
 				<label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-1">
-					Sede *
+					Dirección
 				</label>
-				<select
+				<input
+					type="text"
 					disabled={viewMode || loading}
-					value={formData.id_sede}
+					value={formData.direccion}
 					onChange={(e) =>
-						setFormData((p) => ({ ...p, id_sede: parseInt(e.target.value) }))
+						setFormData((p) => ({ ...p, direccion: e.target.value }))
 					}
-					className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-						errors.id_sede
-							? "border-red-300 focus:ring-red-500 focus:border-red-500"
-							: "border-gray-300 focus:ring-primary focus:border-primary"
-					} dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-				>
-					<option value={0}>Sin sede</option>
-					{sedes.map((sede) => (
-						<option key={sede.id_sede} value={sede.id_sede}>
-							{sede.nombre_sede}
-						</option>
-					))}
-				</select>
-				{errors.id_sede && (
-					<p className="mt-1 text-sm text-red-600">{errors.id_sede}</p>
-				)}
+					className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 border-gray-300 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+				/>
 			</div>
 
-			{/* Estado */}
 			<div>
 				<label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-1">
 					Estado *
 				</label>
 				<select
 					disabled={viewMode || loading}
-					value={formData.estado ? "1" : "0"}
+					value={formData.estado_sede ? "1" : "0"}
 					onChange={(e) =>
-						setFormData((p) => ({ ...p, estado: e.target.value === "1" }))
+						setFormData((p) => ({ ...p, estado_sede: e.target.value === "1" }))
 					}
 					className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 border-gray-300 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
 				>
@@ -197,7 +161,7 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 							<span className="material-symbols-rounded text-sm mr-2">
 								{isEditing ? "edit" : "add"}
 							</span>
-							{isEditing ? "Actualizar" : "Crear Cubículo"}
+							{isEditing ? "Actualizar" : "Crear Sede"}
 						</>
 					)}
 				</button>
@@ -218,11 +182,7 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 			isOpen={isOpen}
 			onClose={onClose}
 			title={
-				viewMode
-					? "Ver Cubículo"
-					: isEditing
-					? "Editar Cubículo"
-					: "Crear Nuevo Cubículo"
+				viewMode ? "Ver Sede" : isEditing ? "Editar Sede" : "Crear Nueva Sede"
 			}
 			footer={footer}
 			size="md"
@@ -232,4 +192,4 @@ const CubiculoModal: React.FC<CubiculoModalProps> = ({
 	);
 };
 
-export default CubiculoModal;
+export default SedeModal;

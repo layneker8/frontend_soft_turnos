@@ -1,21 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { cubiculoService } from "@/services/cubiculoService";
+import { sedeService } from "@/services/sedeService";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToastStore } from "@/stores/toastStore";
-import {
-	CUBICULO_PERMISSIONS,
-	SEDE_PERMISSIONS,
-} from "@/constants/permissions";
-// import type { Sede } from "@/@types";
-import type {
-	FullCubiculo,
-	CreateCubiculoData,
-	UpdateCubiculoData,
-} from "@/@types/cubiculos";
-import type { FullSede } from "@/@types/sedes";
+import { SEDE_PERMISSIONS } from "@/constants/permissions";
+import type { FullSede, CreateSedeData, UpdateSedeData } from "@/@types/sedes";
 
-export const useCubiculos = () => {
-	const [cubiculos, setCubiculos] = useState<FullCubiculo[]>([]);
+export const useSedes = () => {
 	const [sedes, setSedes] = useState<FullSede[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -23,31 +13,26 @@ export const useCubiculos = () => {
 
 	const {
 		hasAnyPermission,
-		checkUserPermission,
 		loading: permissionsLoading,
+		checkUserPermission,
 	} = usePermissions();
 	const { addToast } = useToastStore();
 
-	// Helpers para extraer errores del backend sin usar any
 	const isRecord = (val: unknown): val is Record<string, unknown> =>
 		val !== null && typeof val === "object";
 
 	const parseBackendError = useCallback(
 		(
 			err: unknown
-		): {
-			message: string;
-			fieldErrors?: Record<string, string>;
-		} => {
+		): { message: string; fieldErrors?: Record<string, string> } => {
 			let message = "Error en la operación";
 			if (err instanceof Error && err.message) message = err.message;
 			let fieldErrors: Record<string, string> | undefined;
 			let payload: Record<string, unknown> | undefined;
 			if (isRecord(err) && "payload" in err) {
 				const maybePayload = (err as Record<string, unknown>)["payload"];
-				if (isRecord(maybePayload)) {
+				if (isRecord(maybePayload))
 					payload = maybePayload as Record<string, unknown>;
-				}
 			}
 			if (payload) {
 				if (Array.isArray(payload.details)) {
@@ -77,40 +62,35 @@ export const useCubiculos = () => {
 	);
 
 	const canRead = hasAnyPermission([
-		CUBICULO_PERMISSIONS.READ,
-		CUBICULO_PERMISSIONS.MANAGE,
-	]);
-	const canCreate = hasAnyPermission([
-		CUBICULO_PERMISSIONS.CREATE,
-		CUBICULO_PERMISSIONS.MANAGE,
-	]);
-	const canUpdate = hasAnyPermission([
-		CUBICULO_PERMISSIONS.UPDATE,
-		CUBICULO_PERMISSIONS.MANAGE,
-	]);
-	const canDelete = hasAnyPermission([
-		CUBICULO_PERMISSIONS.DELETE,
-		CUBICULO_PERMISSIONS.MANAGE,
-	]);
-	const canReadSedes = hasAnyPermission([
 		SEDE_PERMISSIONS.READ,
 		SEDE_PERMISSIONS.MANAGE,
 	]);
+	const canCreate = hasAnyPermission([
+		SEDE_PERMISSIONS.CREATE,
+		SEDE_PERMISSIONS.MANAGE,
+	]);
+	const canUpdate = hasAnyPermission([
+		SEDE_PERMISSIONS.UPDATE,
+		SEDE_PERMISSIONS.MANAGE,
+	]);
+	const canDelete = hasAnyPermission([
+		SEDE_PERMISSIONS.DELETE,
+		SEDE_PERMISSIONS.MANAGE,
+	]);
 
-	const loadCubiculos = useCallback(async () => {
+	const loadSedes = useCallback(async () => {
 		if (!canRead) {
-			setError("No tienes permisos para ver los cubículos");
+			setError("No tienes permisos para ver las sedes");
 			return;
 		}
-
 		setLoading(true);
 		setError(null);
 		try {
-			const data = await cubiculoService.getAll();
-			setCubiculos(data);
+			const data = await sedeService.getAll();
+			setSedes(data);
 		} catch (err) {
 			const message =
-				err instanceof Error ? err.message : "Error al cargar cubículos";
+				err instanceof Error ? err.message : "Error al cargar sedes";
 			setError(message);
 			addToast({ type: "error", title: "Error", message });
 		} finally {
@@ -118,31 +98,17 @@ export const useCubiculos = () => {
 		}
 	}, [canRead, addToast]);
 
-	const loadAuxiliaryData = useCallback(async () => {
-		try {
-			const sedesData = canReadSedes ? await cubiculoService.getAllSedes() : [];
-			setSedes(sedesData);
-		} catch (err) {
-			console.error("Error cargando sedes:", err);
-			addToast({
-				type: "warning",
-				title: "Advertencia",
-				message: "No se pudieron cargar las sedes",
-			});
-		}
-	}, [canReadSedes, addToast]);
-
-	const getCubiculoById = useCallback(
-		async (id: number): Promise<FullCubiculo | null> => {
+	const getSedeById = useCallback(
+		async (id: number): Promise<FullSede | null> => {
 			if (!canRead) return null;
 			try {
-				return await cubiculoService.getById(id);
+				return await sedeService.getById(id);
 			} catch (err) {
-				console.error("Error obteniendo cubículo:", err);
+				console.error("Error obteniendo sede:", err);
 				addToast({
 					type: "error",
 					title: "Error",
-					message: "No se pudo obtener el cubículo",
+					message: "No se pudo obtener la sede",
 				});
 				return null;
 			}
@@ -150,9 +116,9 @@ export const useCubiculos = () => {
 		[canRead, addToast]
 	);
 
-	const createCubiculo = useCallback(
+	const createSede = useCallback(
 		async (
-			data: CreateCubiculoData
+			data: CreateSedeData
 		): Promise<{
 			ok: boolean;
 			fieldErrors?: Record<string, string>;
@@ -162,18 +128,18 @@ export const useCubiculos = () => {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
-					message: "No puedes crear cubículos",
+					message: "No puedes crear sedes",
 				});
 				return { ok: false, message: "Sin permisos" };
 			}
 			setSaving(true);
 			try {
-				const created = await cubiculoService.create(data);
-				setCubiculos((prev) => [...prev, created]);
+				const created = await sedeService.create(data);
+				setSedes((prev) => [...prev, created]);
 				addToast({
 					type: "success",
-					title: "Cubículo creado",
-					message: `El cubículo ${created.nombre} fue creado`,
+					title: "Sede creada",
+					message: `La sede ${created.nombre_sede} fue creada`,
 				});
 				return { ok: true };
 			} catch (err) {
@@ -187,10 +153,10 @@ export const useCubiculos = () => {
 		[canCreate, addToast, parseBackendError]
 	);
 
-	const updateCubiculo = useCallback(
+	const updateSede = useCallback(
 		async (
 			id: number,
-			data: UpdateCubiculoData
+			data: UpdateSedeData
 		): Promise<{
 			ok: boolean;
 			fieldErrors?: Record<string, string>;
@@ -200,18 +166,18 @@ export const useCubiculos = () => {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
-					message: "No puedes actualizar cubículos",
+					message: "No puedes actualizar sedes",
 				});
 				return { ok: false, message: "Sin permisos" };
 			}
 			setSaving(true);
 			try {
-				const updated = await cubiculoService.update(id, data);
-				setCubiculos((prev) => prev.map((c) => (c.id === id ? updated : c)));
+				const updated = await sedeService.update(id, data);
+				setSedes((prev) => prev.map((s) => (s.id_sede === id ? updated : s)));
 				addToast({
 					type: "success",
-					title: "Cubículo actualizado",
-					message: `El cubículo ${updated.nombre} fue actualizado`,
+					title: "Sede actualizada",
+					message: `La sede ${updated.nombre_sede} fue actualizada`,
 				});
 				return { ok: true };
 			} catch (err) {
@@ -225,24 +191,24 @@ export const useCubiculos = () => {
 		[canUpdate, addToast, parseBackendError]
 	);
 
-	const deleteCubiculo = useCallback(
+	const deleteSede = useCallback(
 		async (id: number): Promise<{ ok: boolean; message?: string }> => {
 			if (!canDelete) {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
-					message: "No puedes eliminar cubículos",
+					message: "No puedes eliminar sedes",
 				});
 				return { ok: false, message: "Sin permisos" };
 			}
 			setSaving(true);
 			try {
-				await cubiculoService.delete(id);
-				setCubiculos((prev) => prev.filter((c) => c.id !== id));
+				await sedeService.delete(id);
+				setSedes((prev) => prev.filter((s) => s.id_sede !== id));
 				addToast({
 					type: "success",
-					title: "Cubículo eliminado",
-					message: "El cubículo fue eliminado",
+					title: "Sede eliminada",
+					message: "La sede fue eliminada",
 				});
 				return { ok: true };
 			} catch (err) {
@@ -257,14 +223,10 @@ export const useCubiculos = () => {
 	);
 
 	useEffect(() => {
-		if (canRead) {
-			loadCubiculos();
-		}
-		loadAuxiliaryData();
-	}, [canRead, loadCubiculos, loadAuxiliaryData]);
+		if (canRead) loadSedes();
+	}, [canRead, loadSedes]);
 
 	return {
-		cubiculos,
 		sedes,
 		loading,
 		saving,
@@ -274,11 +236,11 @@ export const useCubiculos = () => {
 		canCreate,
 		canUpdate,
 		canDelete,
-		loadCubiculos,
-		createCubiculo,
-		updateCubiculo,
-		deleteCubiculo,
-		getCubiculoById,
+		loadSedes,
+		createSede,
+		updateSede,
+		deleteSede,
+		getSedeById,
 		checkUserPermission,
 	};
 };

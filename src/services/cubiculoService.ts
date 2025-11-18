@@ -1,6 +1,7 @@
+import type { FullSede } from "@/@types/sedes";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
-import type { Sede } from "@/@types";
+// import type { Sede } from "@/@types";
 import type {
 	FullCubiculo,
 	CreateCubiculoData,
@@ -11,13 +12,6 @@ interface ApiResponse<T> {
 	success: boolean;
 	total?: number;
 	data: T;
-	error?: string;
-}
-
-interface ApiResponseSede<T> {
-	success: boolean;
-	total?: number;
-	sedes: T;
 	error?: string;
 }
 
@@ -88,12 +82,12 @@ export class CubiculoService {
 		}
 	}
 
-	async getAllSedes(): Promise<Sede[]> {
+	async getAllSedes(): Promise<FullSede[]> {
 		try {
-			const response = (await apiService.get("/api/sedes")) as ApiResponseSede<
-				Sede[]
-			>;
-			return response.sedes || [];
+			const response = (await apiService.get(
+				"/api/sedes/available"
+			)) as ApiResponse<FullSede[]>;
+			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo sedes:", error);
 			throw error;

@@ -11,10 +11,10 @@ import Footer from "./Footer";
 import DashboardMain from "./DashboardMain";
 import ViewTurnos from "../turnos/viewTurnos";
 import ViewAsignacionTurnos from "../turnos/viewAsignacionTurnos";
-import SecurePermissionsExample from "../examples/SecurePermissionsExample";
 import NotFound404 from "../common/NotFound404";
 import ViewUsers from "../users/viewUsers";
 import ViewCubiculo from "../cubiculos/ViewCubiculo";
+import ViewSedes from "../sedes/ViewSedes";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -85,7 +85,7 @@ const Home: React.FC = () => {
 						{/* Ejemplo de múltiples permisos */}
 						<Route path="cubiculos" element={<ViewCubiculo />} />
 						{/* Ejemplo de seguridad en permisos */}
-						<Route path="sedes" element={<SecurePermissionsExample />} />
+						<Route path="sedes" element={<ViewSedes />} />
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />
 					</Routes>

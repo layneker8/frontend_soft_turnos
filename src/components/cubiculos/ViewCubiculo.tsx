@@ -58,6 +58,8 @@ const ViewCubiculo: React.FC = () => {
 				setViewMode(true);
 				setSelected(full);
 				setIsModalOpen(true);
+				setFormServerError(undefined);
+				setFormFieldErrors(undefined);
 			}
 		},
 		[getCubiculoById]

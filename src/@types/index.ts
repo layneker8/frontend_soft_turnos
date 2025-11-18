@@ -60,17 +60,6 @@ export interface Toast {
 	duration?: number;
 }
 
-// interface ImportMeta {
-//     readonly env: ImportMetaEnv;
-// }
-
-/* Tipos para sedes y cubículos */
-export interface Sede {
-	id_sede: number;
-	nombre_sede: string;
-	created_at: string;
-}
-
 export interface Cubiculo {
 	id: number;
 	nombre: string;
