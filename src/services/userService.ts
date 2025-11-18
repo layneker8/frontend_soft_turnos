@@ -1,4 +1,5 @@
 import { apiService } from "./apiService";
+import { buildResponseError } from "./serviceUtils";
 import type { Sede, Cubiculo, Rol } from "@/@types";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
 
@@ -74,8 +75,8 @@ export class UserService {
 				"/api/users/register",
 				userData
 			)) as ApiResponse<FullUser>;
-			if (!response.success) {
-				throw new Error(response.error || "Error creando usuario");
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error creando usuario");
 			}
 			return response.users;
 		} catch (error) {
@@ -94,6 +95,9 @@ export class UserService {
 				`/api/users/${id}`,
 				userData
 			)) as ApiResponse<FullUser>;
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error actualizando usuario");
+			}
 			return response.users;
 		} catch (error) {
 			console.error(`Error actualizando usuario ${id}:`, error);

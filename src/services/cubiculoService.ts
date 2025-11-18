@@ -1,4 +1,5 @@
 import { apiService } from "./apiService";
+import { buildResponseError } from "./serviceUtils";
 import type { Sede } from "@/@types";
 import type {
 	FullCubiculo,
@@ -21,32 +22,6 @@ interface ApiResponseSede<T> {
 }
 
 export class CubiculoService {
-	private getErrorString(body: unknown): string | undefined {
-		if (
-			body &&
-			typeof body === "object" &&
-			"error" in (body as Record<string, unknown>)
-		) {
-			const e = (body as Record<string, unknown>)["error"];
-			if (typeof e === "string") return e;
-		}
-		if (
-			body &&
-			typeof body === "object" &&
-			"message" in (body as Record<string, unknown>)
-		) {
-			const m = (body as Record<string, unknown>)["message"];
-			if (typeof m === "string") return m;
-		}
-		return undefined;
-	}
-
-	private buildResponseError(body: unknown, fallback: string): Error {
-		const msg = this.getErrorString(body) || fallback;
-		const err = new Error(msg) as Error & { payload?: unknown };
-		err.payload = body;
-		return err;
-	}
 	async getAll(): Promise<FullCubiculo[]> {
 		try {
 			const response = (await apiService.get("/api/cubiculos")) as ApiResponse<
@@ -79,7 +54,7 @@ export class CubiculoService {
 				data
 			)) as ApiResponse<FullCubiculo>;
 			if ("success" in response && response.success === false) {
-				throw this.buildResponseError(response, "Error creando cubículo");
+				throw buildResponseError(response, "Error creando cubículo");
 			}
 			return response.data;
 		} catch (error) {
@@ -95,7 +70,7 @@ export class CubiculoService {
 				data
 			)) as ApiResponse<FullCubiculo>;
 			if ("success" in response && response.success === false) {
-				throw this.buildResponseError(response, "Error actualizando cubículo");
+				throw buildResponseError(response, "Error actualizando cubículo");
 			}
 			return response.data;
 		} catch (error) {
