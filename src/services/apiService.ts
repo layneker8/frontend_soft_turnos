@@ -1,6 +1,14 @@
 // Servicio API con soporte para cookies JWT + CSRF
 import { env } from "@/config/env";
 
+interface ApiErrorBody {
+	error?: string;
+	message?: string;
+	details?: Array<{ message: string; field?: string }>;
+	[key: string]: unknown;
+}
+type RichError = Error & { payload?: unknown; status?: number };
+
 export class ApiService {
 	private baseURL: string;
 	private csrfToken: string | null = null;
@@ -27,6 +35,20 @@ export class ApiService {
 		return null;
 	}
 
+	// Construir error enriquecido con payload y status
+	private buildApiError(body: ApiErrorBody | unknown, status: number): Error {
+		const b = (body || {}) as ApiErrorBody;
+		let message = b.error || b.message || `HTTP error! status: ${status}`;
+		if (b.details && Array.isArray(b.details) && b.details.length > 0) {
+			const detalles = b.details.map((d) => d.message).join(", ");
+			message = `${message}${detalles ? ": " + detalles : ""}`;
+		}
+		const err = new Error(message) as RichError;
+		err.payload = b;
+		err.status = status;
+		return err;
+	}
+
 	// Request genérico para operaciones de lectura (solo JWT via cookies)
 	async get(endpoint: string) {
 		try {
@@ -38,14 +60,16 @@ export class ApiService {
 				},
 			});
 
+			const value = await response.json();
 			if (!response.ok) {
 				if (response.status === 401) {
-					throw new Error("No autorizado");
+					const err = new Error("No autorizado") as RichError;
+					err.status = 401;
+					throw err;
 				}
-				throw new Error(`HTTP error! status: ${response.status}`);
+				throw this.buildApiError(value, response.status);
 			}
-
-			return await response.json();
+			return value;
 		} catch (error) {
 			console.error(`Error en GET ${endpoint}:`, error);
 			throw error;
@@ -78,7 +102,9 @@ export class ApiService {
 
 			if (!response.ok) {
 				if (response.status === 401) {
-					throw new Error("No autorizado");
+					const err = new Error("No autorizado") as RichError;
+					err.status = 401;
+					throw err;
 				}
 				if (response.status === 403) {
 					// Posible CSRF token inválido, obtener nuevo
@@ -86,16 +112,8 @@ export class ApiService {
 					// Reintentar una vez
 					return this.requestWithCSRF(endpoint, method, data);
 				}
-				if (response.status === 400) {
-					if (value && typeof value === "object" && "details" in value) {
-						const errores = value.details
-							.map((error: { message: string }) => error.message)
-							.join(", ");
-						throw new Error(`${value.error}: ${errores}`);
-					}
-					throw new Error(value.error || "Error en la solicitud");
-				}
-				throw new Error(`HTTP error!!! status: ${response.status}`);
+				// Para 400 y otros códigos, propagar error enriquecido
+				throw this.buildApiError(value, response.status);
 			}
 
 			return value;
