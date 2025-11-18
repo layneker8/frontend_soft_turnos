@@ -18,6 +18,7 @@ const ViewUsers: React.FC = () => {
 		sedes,
 		roles,
 		loading,
+		saving,
 		permissionsLoading,
 		error,
 		canRead,
@@ -36,6 +37,12 @@ const ViewUsers: React.FC = () => {
 	const [viewMode, setViewMode] = useState(false);
 	const [userToDelete, setUserToDelete] = useState<FullUser | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
+	const [formServerError, setFormServerError] = useState<string | undefined>(
+		undefined
+	);
+	const [formFieldErrors, setFormFieldErrors] = useState<
+		Record<string, string> | undefined
+	>(undefined);
 
 	// Esperar a que se inicialice el hook
 	useEffect(() => {
@@ -127,6 +134,8 @@ const ViewUsers: React.FC = () => {
 	const handleView = async (user: FullUser) => {
 		const fullUser = await getUserById(user.id_usuario);
 		if (fullUser) {
+			setFormServerError(undefined);
+			setFormFieldErrors(undefined);
 			setViewMode(true);
 			setSelectedUser(fullUser);
 			setIsModalOpen(true);
@@ -135,6 +144,8 @@ const ViewUsers: React.FC = () => {
 	const handleEditUser = async (user: FullUser) => {
 		const fullUser = await getUserById(user.id_usuario);
 		if (fullUser) {
+			setFormServerError(undefined);
+			setFormFieldErrors(undefined);
 			setViewMode(false);
 			setSelectedUser(fullUser);
 			setIsModalOpen(true);
@@ -147,6 +158,8 @@ const ViewUsers: React.FC = () => {
 	};
 
 	const handleCreateUser = () => {
+		setFormServerError(undefined);
+		setFormFieldErrors(undefined);
 		setSelectedUser(null);
 		setIsModalOpen(true);
 		setViewMode(false);
@@ -154,8 +167,8 @@ const ViewUsers: React.FC = () => {
 
 	const confirmDeleteUser = async () => {
 		if (userToDelete) {
-			const success = await deleteUser(userToDelete.id_usuario);
-			if (success) {
+			const res = await deleteUser(userToDelete.id_usuario);
+			if (res.ok) {
 				setShowDeleteModal(false);
 				setUserToDelete(null);
 			}
@@ -165,13 +178,25 @@ const ViewUsers: React.FC = () => {
 	const handleModalSubmit = async (
 		userData: CreateUserData | UpdateUserData
 	) => {
+		setFormServerError(undefined);
+		setFormFieldErrors(undefined);
 		if (selectedUser) {
-			return await updateUser(
+			const res = await updateUser(
 				selectedUser.id_usuario,
 				userData as UpdateUserData
 			);
+			if (!res.ok) {
+				setFormServerError(res.message);
+				setFormFieldErrors(res.fieldErrors);
+			}
+			return res.ok;
 		} else {
-			return await createUser(userData as CreateUserData);
+			const res = await createUser(userData as CreateUserData);
+			if (!res.ok) {
+				setFormServerError(res.message);
+				setFormFieldErrors(res.fieldErrors);
+			}
+			return res.ok;
 		}
 	};
 
@@ -323,8 +348,10 @@ const ViewUsers: React.FC = () => {
 				user={selectedUser}
 				sedes={sedes}
 				roles={roles}
-				loading={loading}
+				loading={saving}
 				viewMode={viewMode}
+				serverError={formServerError}
+				serverFieldErrors={formFieldErrors}
 			/>
 			{/* Modal de confirmación de eliminación */}
 			{showDeleteModal && userToDelete && (

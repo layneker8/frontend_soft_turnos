@@ -12,6 +12,8 @@ interface UserModalProps {
 	roles: Rol[];
 	loading?: boolean;
 	viewMode?: boolean;
+	serverError?: string;
+	serverFieldErrors?: Record<string, string>;
 }
 
 const UserModal: React.FC<UserModalProps> = ({
@@ -23,6 +25,8 @@ const UserModal: React.FC<UserModalProps> = ({
 	roles,
 	loading = false,
 	viewMode = false,
+	serverError,
+	serverFieldErrors,
 }) => {
 	const [formData, setFormData] = useState({
 		documento: "",
@@ -43,7 +47,6 @@ const UserModal: React.FC<UserModalProps> = ({
 	useEffect(() => {
 		if (isOpen) {
 			if (user) {
-				console.log("user", user);
 				// Modo edición
 				setFormData({
 					documento: user.documento || "",
@@ -71,6 +74,14 @@ const UserModal: React.FC<UserModalProps> = ({
 			setErrors({});
 		}
 	}, [isOpen, user]);
+
+	// Aplicar errores de backend sin limpiar el formulario
+	useEffect(() => {
+		if (!isOpen) return;
+		if (serverFieldErrors && Object.keys(serverFieldErrors).length > 0) {
+			setErrors((prev) => ({ ...prev, ...serverFieldErrors }));
+		}
+	}, [isOpen, serverFieldErrors]);
 
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {};
@@ -145,6 +156,11 @@ const UserModal: React.FC<UserModalProps> = ({
 	// Body del formulario
 	const formBody = (
 		<form onSubmit={handleSubmit} className="space-y-4">
+			{serverError && (
+				<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2 text-sm text-red-800 dark:text-red-200">
+					{serverError}
+				</div>
+			)}
 			{/* Documento */}
 			<div>
 				<label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-1">
@@ -252,8 +268,15 @@ const UserModal: React.FC<UserModalProps> = ({
 					onChange={(e) =>
 						setFormData((prev) => ({ ...prev, area_user: e.target.value }))
 					}
-					className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+					className={`w-full px-3 py-2 border ${
+						errors.area_user
+							? "border-red-300 focus:ring-red-500 focus:border-red-500"
+							: "border-gray-300 focus:ring-primary focus:border-primary"
+					}  rounded-md shadow-sm focus:outline-none focus:ring-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed`}
 				/>
+				{errors.area_user && (
+					<p className="mt-1 text-sm text-red-600">{errors.area_user}</p>
+				)}
 			</div>
 
 			{/* Rol */}

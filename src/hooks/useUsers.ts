@@ -11,6 +11,7 @@ export const useUsers = () => {
 	const [sedes, setSedes] = useState<Sede[]>([]);
 	const [roles, setRoles] = useState<Rol[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	const {
@@ -19,6 +20,54 @@ export const useUsers = () => {
 		loading: permissionsLoading,
 	} = usePermissions();
 	const { addToast } = useToastStore();
+
+	// Helpers para extraer errores del backend sin usar any
+	const isRecord = (val: unknown): val is Record<string, unknown> =>
+		val !== null && typeof val === "object";
+
+	const parseBackendError = useCallback(
+		(
+			err: unknown
+		): {
+			message: string;
+			fieldErrors?: Record<string, string>;
+		} => {
+			let message = "Error en la operación";
+			if (err instanceof Error && err.message) message = err.message;
+			let fieldErrors: Record<string, string> | undefined;
+			let payload: Record<string, unknown> | undefined;
+			if (isRecord(err) && "payload" in err) {
+				const maybePayload = (err as Record<string, unknown>)["payload"];
+				if (isRecord(maybePayload)) {
+					payload = maybePayload as Record<string, unknown>;
+				}
+			}
+			if (payload) {
+				if (Array.isArray(payload.details)) {
+					for (const d of payload.details) {
+						if (isRecord(d)) {
+							const field = typeof d.field === "string" ? d.field : undefined;
+							const msg = typeof d.message === "string" ? d.message : undefined;
+							if (field && msg) {
+								fieldErrors = fieldErrors || {};
+								fieldErrors[field] = msg;
+							}
+						}
+					}
+				}
+				if (isRecord(payload.errors)) {
+					fieldErrors = fieldErrors || {};
+					Object.entries(payload.errors as Record<string, unknown>).forEach(
+						([k, v]) => {
+							if (typeof v === "string") fieldErrors![k] = v;
+						}
+					);
+				}
+			}
+			return { message, fieldErrors };
+		},
+		[]
+	);
 
 	// Permisos necesarios
 	const canRead = hasAnyPermission([
@@ -123,66 +172,70 @@ export const useUsers = () => {
 	 * Crear un nuevo usuario
 	 */
 	const createUser = useCallback(
-		async (userData: CreateUserData): Promise<boolean> => {
+		async (
+			userData: CreateUserData
+		): Promise<{
+			ok: boolean;
+			fieldErrors?: Record<string, string>;
+			message?: string;
+		}> => {
 			if (!canCreate) {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
 					message: "No tienes permisos para crear usuarios",
 				});
-				return false;
+				return { ok: false, message: "Sin permisos" };
 			}
 
-			setLoading(true);
+			setSaving(true);
 			try {
 				const newUser = await userService.createUser(userData);
-				const fullNewUser = await getUserById(newUser.id_usuario);
-				setUsers((prev) => [...prev, fullNewUser || newUser]);
+				setUsers((prev) => [...prev, newUser]);
 
 				addToast({
 					type: "success",
 					title: "Usuario creado",
 					message: `El usuario ${newUser.nombre_user} fue creado exitosamente`,
 				});
-				return true;
+				return { ok: true };
 			} catch (err) {
-				const errorMessage =
-					err instanceof Error ? err.message : "Error al crear usuario";
-				addToast({
-					type: "error",
-					title: "Error",
-					message: errorMessage,
-				});
-				return false;
+				const { message, fieldErrors } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message, fieldErrors };
 			} finally {
-				setLoading(false);
+				setSaving(false);
 			}
 		},
-		[canCreate, addToast]
+		[canCreate, addToast, parseBackendError]
 	);
 
 	/**
 	 * Actualizar un usuario existente
 	 */
 	const updateUser = useCallback(
-		async (id: number, userData: UpdateUserData): Promise<boolean> => {
+		async (
+			id: number,
+			userData: UpdateUserData
+		): Promise<{
+			ok: boolean;
+			fieldErrors?: Record<string, string>;
+			message?: string;
+		}> => {
 			if (!canUpdate) {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
 					message: "No tienes permisos para actualizar usuarios",
 				});
-				return false;
+				return { ok: false, message: "Sin permisos" };
 			}
 
-			setLoading(true);
+			setSaving(true);
 			try {
 				const updatedUser = await userService.updateUser(id, userData);
-				const fullUpdatedUser = await getUserById(updatedUser.id_usuario);
 				setUsers((prev) =>
-					prev.map((user) =>
-						user.id_usuario === id ? fullUpdatedUser || updatedUser : user
-					)
+					prev.map((user) => (user.id_usuario === id ? updatedUser : user))
 				);
 
 				addToast({
@@ -190,38 +243,33 @@ export const useUsers = () => {
 					title: "Usuario actualizado",
 					message: `El usuario ${updatedUser.nombre_user} fue actualizado exitosamente`,
 				});
-				return true;
+				return { ok: true };
 			} catch (err) {
-				const errorMessage =
-					err instanceof Error ? err.message : "Error al actualizar usuario";
-				addToast({
-					type: "error",
-					title: "Error",
-					message: errorMessage,
-				});
-				return false;
+				const { message, fieldErrors } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message, fieldErrors };
 			} finally {
-				setLoading(false);
+				setSaving(false);
 			}
 		},
-		[canUpdate, addToast]
+		[canUpdate, addToast, parseBackendError]
 	);
 
 	/**
 	 * Eliminar un usuario
 	 */
 	const deleteUser = useCallback(
-		async (id: number): Promise<boolean> => {
+		async (id: number): Promise<{ ok: boolean; message?: string }> => {
 			if (!canDelete) {
 				addToast({
 					type: "error",
 					title: "Sin permisos",
 					message: "No tienes permisos para eliminar usuarios",
 				});
-				return false;
+				return { ok: false, message: "Sin permisos" };
 			}
 
-			setLoading(true);
+			setSaving(true);
 			try {
 				await userService.deleteUser(id);
 				setUsers((prev) => prev.filter((user) => user.id_usuario !== id));
@@ -231,21 +279,16 @@ export const useUsers = () => {
 					title: "Usuario eliminado",
 					message: "El usuario fue eliminado exitosamente",
 				});
-				return true;
+				return { ok: true };
 			} catch (err) {
-				const errorMessage =
-					err instanceof Error ? err.message : "Error al eliminar usuario";
-				addToast({
-					type: "error",
-					title: "Error",
-					message: errorMessage,
-				});
-				return false;
+				const { message } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message };
 			} finally {
-				setLoading(false);
+				setSaving(false);
 			}
 		},
-		[canDelete, addToast]
+		[canDelete, addToast, parseBackendError]
 	);
 
 	/**
@@ -286,6 +329,7 @@ export const useUsers = () => {
 		sedes,
 		roles,
 		loading,
+		saving,
 		permissionsLoading,
 		error,
 
