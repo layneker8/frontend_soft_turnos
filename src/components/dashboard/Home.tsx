@@ -15,6 +15,7 @@ import NotFound404 from "../common/NotFound404";
 import ViewUsers from "../users/viewUsers";
 import ViewCubiculo from "../cubiculos/ViewCubiculo";
 import ViewSedes from "../sedes/ViewSedes";
+import ViewPrioridades from "../prioridades/ViewPrioridades";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -88,10 +89,7 @@ const Home: React.FC = () => {
 							path="roles"
 							element={<div>Vista de Roles - Próximamente</div>}
 						/>
-						<Route
-							path="prioridades"
-							element={<div>Vista de Prioridades - Próximamente</div>}
-						/>
+						<Route path="prioridades" element={<ViewPrioridades />} />
 
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />

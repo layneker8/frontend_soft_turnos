@@ -33,7 +33,7 @@ const Modal: React.FC<ModalProps> = ({
 			className={`fixed left-0 top-0 h-full w-full bg-black/50 z-[1060] overflow-x-hidden overflow-y-auto outline-0 transition-opacity ease-linear ${
 				isOpen ? "opacity-100" : "opacity-0"
 			}`}
-			onClick={onClose}
+			// onClick={onClose}
 		>
 			<div
 				className={`relative w-auto pointer-events-none ${
