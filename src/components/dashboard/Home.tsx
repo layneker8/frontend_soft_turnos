@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 // import { useAppStore } from '@/stores/appStore';
@@ -17,6 +17,8 @@ import ViewCubiculo from "../cubiculos/ViewCubiculo";
 import ViewSedes from "../sedes/ViewSedes";
 import ViewPrioridades from "../prioridades/ViewPrioridades";
 import ViewRoles from "../roles/ViewRoles";
+import Loading from "../common/Loading";
+import ViewServicios from "@/components/servicios/ViewServicios";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -71,10 +73,21 @@ const Home: React.FC = () => {
 							element={<ViewAsignacionTurnos />}
 						/>
 						{/* Puedes agregar más rutas aquí */}
-						<Route path="usuarios" element={<ViewUsers />} />
+						<Route
+							path="usuarios"
+							element={
+								<Suspense fallback={<Loading />}>
+									<ViewUsers />
+								</Suspense>
+							}
+						/>
 						<Route
 							path="servicios"
-							element={<div>Vista de Servicios - Próximamente</div>}
+							element={
+								<Suspense fallback={<Loading />}>
+									<ViewServicios />
+								</Suspense>
+							}
 						/>
 						<Route
 							path="pacientes"
