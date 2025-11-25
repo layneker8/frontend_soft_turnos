@@ -28,19 +28,28 @@ const Modal: React.FC<ModalProps> = ({
 		xl: "sm:max-w-[1024px]",
 	};
 
+	const handleBackdropClick = () => {
+		const modal = document.getElementById("My-modal");
+		modal?.classList.add("animate-wiggle");
+		setTimeout(() => {
+			modal?.classList.remove("animate-wiggle");
+		}, 300);
+	};
+
 	return (
 		<div
-			className={`fixed left-0 top-0 h-full w-full bg-black/50 z-[1060] overflow-x-hidden overflow-y-auto outline-0 transition-opacity ease-linear ${
+			className={`fixed left-0 top-0 h-full w-full bg-black/50 z-[1060] overflow-x-hidden overflow-y-auto outline-0 transition-all ease-linear ${
 				isOpen ? "opacity-100" : "opacity-0"
 			}`}
-			// onClick={onClose}
+			onClick={handleBackdropClick}
 		>
 			<div
 				className={`relative w-auto pointer-events-none ${
 					sizeClasses[size]
-				} my-[0.5rem] mx-[0.5rem] sm:mx-auto md:my-[1.5rem] xl:my-[1.75rem] transition-transform ease-out ${
+				} my-[0.5rem] mx-[0.5rem] sm:mx-auto md:my-[1.5rem] xl:my-[1.75rem] transition-all ease-out ${
 					isOpen ? "transform-none" : "transform-[translate(0,-50px)]"
 				}`}
+				id="My-modal"
 			>
 				<div
 					className="relative flex flex-col w-full pointer-events-auto bg-white dark:bg-gray-800 border-1 border-solid border-black/50 dark:border-gray-600 rounded-lg outline-0"
