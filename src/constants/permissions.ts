@@ -98,3 +98,7 @@ export const ALL_PERMISSIONS = {
 	REPORT: REPORT_PERMISSIONS,
 	PRIORIDAD: PRIORIDADES_PERMISSIONS,
 };
+
+export const ALL_PERMISSIONS_LIST: string[] = Object.values(
+	ALL_PERMISSIONS
+).flatMap((module) => Object.values(module));

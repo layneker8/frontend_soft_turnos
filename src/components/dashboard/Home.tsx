@@ -16,6 +16,7 @@ import ViewUsers from "../users/viewUsers";
 import ViewCubiculo from "../cubiculos/ViewCubiculo";
 import ViewSedes from "../sedes/ViewSedes";
 import ViewPrioridades from "../prioridades/ViewPrioridades";
+import ViewRoles from "../roles/ViewRoles";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -85,10 +86,7 @@ const Home: React.FC = () => {
 						/>
 						<Route path="cubiculos" element={<ViewCubiculo />} />
 						<Route path="sedes" element={<ViewSedes />} />
-						<Route
-							path="roles"
-							element={<div>Vista de Roles - Próximamente</div>}
-						/>
+						<Route path="roles" element={<ViewRoles />} />
 						<Route path="prioridades" element={<ViewPrioridades />} />
 
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
