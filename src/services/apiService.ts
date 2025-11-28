@@ -107,10 +107,17 @@ export class ApiService {
 					throw err;
 				}
 				if (response.status === 403) {
-					// Posible CSRF token inválido, obtener nuevo
-					await this.getCSRFToken();
-					// Reintentar una vez
-					return this.requestWithCSRF(endpoint, method, data);
+					if (
+						value.code === "NO_CSRF_TOKEN" ||
+						value.code === "INVALID_CSRF_TOKEN" ||
+						value.code === "NO_CSRF_SECRET" ||
+						value.code === "CSRF_ERROR"
+					) {
+						// Posible CSRF token inválido, obtener nuevo
+						await this.getCSRFToken();
+						// Reintentar una vez
+						return this.requestWithCSRF(endpoint, method, data);
+					}
 				}
 				// Para 400 y otros códigos, propagar error enriquecido
 				throw this.buildApiError(value, response.status);

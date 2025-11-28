@@ -1,7 +1,5 @@
 import React from "react";
 import { usePermissions } from "@/hooks/usePermissions";
-import { ALL_PERMISSIONS } from "@/constants/permissions";
-
 /**
  * Componente que se renderiza solo si el usuario tiene el permiso requerido
  */
@@ -187,69 +185,4 @@ export const ProtectedComplex: React.FC<ProtectedComplexProps> = ({
 	}
 
 	return <>{children}</>;
-};
-
-/**
- * Ejemplo de uso del sistema de permisos
- * Esta sería una sección de tu dashboard
- */
-export const ExampleUsageComponent: React.FC = () => {
-	const { checkUserPermission, loading } = usePermissions();
-
-	const handleDeleteUser = async () => {
-		// Verificar permiso antes de ejecutar acción crítica
-		const canDelete = await checkUserPermission(ALL_PERMISSIONS.USUARIOS.DELETE);
-
-		if (!canDelete) {
-			alert("No tienes permisos para eliminar usuarios");
-			return;
-		}
-
-		// Proceder con la eliminación
-		console.log("Eliminando usuario...");
-	};
-	const isAdmin = checkUserPermission(ALL_PERMISSIONS.ADMIN.MANAGE);
-	return (
-		<div className="p-6">
-			<h2 className="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
-
-			{/* Mostrar contenido solo si tiene permisos */}
-			<ProtectedComponent
-				permission={ALL_PERMISSIONS.USUARIOS.READ}
-				fallback={<p className="text-red-500">No tienes permisos para ver usuarios</p>}
-			>
-				<div className="mb-4">
-					<h3 className="text-lg font-semibold">Lista de Usuarios</h3>
-					{/* Lista de usuarios aquí */}
-				</div>
-			</ProtectedComponent>
-
-			{/* Botones de acción basados en permisos */}
-			<div className="flex gap-2">
-				<ProtectedComponent permission={ALL_PERMISSIONS.USUARIOS.CREATE}>
-					<button className="bg-blue-500 text-white px-4 py-2 rounded">
-						Crear Usuario
-					</button>
-				</ProtectedComponent>
-
-				<ProtectedComponent permission={ALL_PERMISSIONS.USUARIOS.DELETE}>
-					<button
-						onClick={handleDeleteUser}
-						className="bg-red-500 text-white px-4 py-2 rounded"
-						disabled={loading}
-					>
-						{loading ? "Verificando..." : "Eliminar Usuario"}
-					</button>
-				</ProtectedComponent>
-			</div>
-
-			{/* Sección solo para administradores */}
-			{isAdmin && (
-				<div className="mt-6 p-4 bg-yellow-100 rounded">
-					<h3 className="font-bold">Sección de Administrador</h3>
-					<p>Esta sección solo es visible para administradores</p>
-				</div>
-			)}
-		</div>
-	);
 };

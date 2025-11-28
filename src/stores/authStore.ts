@@ -13,6 +13,8 @@ interface AuthState {
 	error: string | null;
 	userPermissions: string[]; // Cache de permisos del usuario
 	permissionsLoaded: boolean; // Flag para saber si ya se cargaron los permisos
+	permissionsInterval: NodeJS.Timeout | null; // Intervalo para revalidación de permisos
+	loadingPermissions: boolean; // Flag para evitar múltiples cargas simultáneas
 
 	// Acciones
 	login: (credentials: LoginCredentials) => Promise<AuthResponse>;
@@ -41,6 +43,8 @@ export const useAuthStore = create<AuthState>()(
 			error: null,
 			userPermissions: [],
 			permissionsLoaded: false,
+			permissionsInterval: null,
+			loadingPermissions: false,
 
 			// Acción de login
 			login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -59,16 +63,23 @@ export const useAuthStore = create<AuthState>()(
 						});
 
 						// Cargar permisos del usuario después del login exitoso
-						const { loadUserPermissions } = get();
-						loadUserPermissions();
+						const { loadUserPermissions, permissionsInterval } = get();
+						await loadUserPermissions();
+
+						// Limpiar intervalo anterior si existe
+						if (permissionsInterval) {
+							clearInterval(permissionsInterval);
+						}
 
 						// Configurar revalidación periódica de permisos (cada 5 minutos)
-						setInterval(() => {
+						const newInterval = setInterval(async () => {
 							const currentState = get();
 							if (currentState.isAuthenticated) {
-								currentState.loadUserPermissions();
+								await currentState.loadUserPermissions();
 							}
 						}, 5 * 60 * 1000); // 5 minutos
+
+						set({ permissionsInterval: newInterval });
 					} else {
 						set({
 							isLoading: false,
@@ -104,6 +115,12 @@ export const useAuthStore = create<AuthState>()(
 					console.error("Error durante logout:", error);
 					// Continuar con logout local aunque falle el servidor
 				} finally {
+					// Limpiar intervalo de permisos
+					const { permissionsInterval } = get();
+					if (permissionsInterval) {
+						clearInterval(permissionsInterval);
+					}
+
 					// Limpiar estado local
 					set({
 						user: null,
@@ -112,6 +129,8 @@ export const useAuthStore = create<AuthState>()(
 						error: null,
 						userPermissions: [],
 						permissionsLoaded: false,
+						permissionsInterval: null,
+						loadingPermissions: false,
 					});
 
 					localStorage.removeItem("auth-storage");
@@ -130,23 +149,45 @@ export const useAuthStore = create<AuthState>()(
 
 			// Cargar permisos del usuario
 			loadUserPermissions: async (): Promise<void> => {
-				const { isAuthenticated, user } = get();
+				const {
+					isAuthenticated,
+					user,
+					loadingPermissions,
+					permissionsLoaded,
+					userPermissions,
+				} = get();
 
 				if (!isAuthenticated || !user) {
 					return;
 				}
+
+				// Si ya se están cargando, no hacer otra petición
+				if (loadingPermissions) {
+					console.log("Ya se están cargando los permisos, evitando duplicado");
+					return;
+				}
+
+				// Si ya están cargados y hay permisos en cache, no recargar
+				if (permissionsLoaded && userPermissions.length > 0) {
+					console.log("Permisos ya cargados desde cache");
+					return;
+				}
+
+				set({ loadingPermissions: true });
 
 				try {
 					const permissions = await apiService.getUserPermissions(user.id_rol);
 					set({
 						userPermissions: permissions,
 						permissionsLoaded: true,
+						loadingPermissions: false,
 					});
 				} catch (error) {
 					console.error("Error cargando permisos del usuario:", error);
 					set({
 						userPermissions: [],
 						permissionsLoaded: true, // Marcar como cargado aunque haya error
+						loadingPermissions: false,
 					});
 				}
 			},
@@ -222,6 +263,12 @@ export const useAuthStore = create<AuthState>()(
 				try {
 					const isAuth = await apiService.checkAuth();
 					if (!isAuth) {
+						// Limpiar intervalo de permisos
+						const { permissionsInterval } = get();
+						if (permissionsInterval) {
+							clearInterval(permissionsInterval);
+						}
+
 						// Si no está autenticado, limpiar el estado
 						set({
 							user: null,
@@ -230,6 +277,8 @@ export const useAuthStore = create<AuthState>()(
 							error: null,
 							userPermissions: [],
 							permissionsLoaded: false,
+							permissionsInterval: null,
+							loadingPermissions: false,
 						});
 					}
 				} catch (error) {
@@ -242,6 +291,8 @@ export const useAuthStore = create<AuthState>()(
 			partialize: (state) => ({
 				user: state.user,
 				isAuthenticated: state.isAuthenticated,
+				permissionsLoaded: state.permissionsLoaded,
+				userPermissions: state.userPermissions,
 			}),
 		}
 	)

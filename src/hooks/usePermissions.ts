@@ -23,7 +23,8 @@ export const usePermissions = () => {
 			setLoading(true);
 			loadUserPermissions().finally(() => setLoading(false));
 		}
-	}, [isAuthenticated, permissionsLoaded, loadUserPermissions]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isAuthenticated, permissionsLoaded]);
 
 	/**
 	 * Verificar un permiso específico (síncrono, desde caché)
