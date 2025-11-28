@@ -173,6 +173,8 @@ export default function ViewAsignar() {
 		setSelected(null);
 		setIsModalOpen(true);
 		setViewMode(false);
+		setFormServerError(undefined);
+		setFormFieldErrors(undefined);
 	};
 
 	const confirmDelete = async () => {

@@ -154,6 +154,8 @@ const ViewCubiculo: React.FC = () => {
 		setSelected(null);
 		setIsModalOpen(true);
 		setViewMode(false);
+		setFormServerError(undefined);
+		setFormFieldErrors(undefined);
 	};
 
 	const confirmDelete = async () => {
@@ -235,7 +237,7 @@ const ViewCubiculo: React.FC = () => {
 					</ProtectedAnyPermission>
 					<ProtectedAnyPermission
 						permissions={[
-							CUBICULO_PERMISSIONS.CREATE,
+							CUBICULO_PERMISSIONS.ASSIGN,
 							CUBICULO_PERMISSIONS.MANAGE,
 						]}
 					>
