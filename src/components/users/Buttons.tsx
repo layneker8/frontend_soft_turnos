@@ -23,31 +23,37 @@ export default function Buttons({
 				permissions={[USER_PERMISSIONS.READ, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-secondary-500 text-white px-2 py-1 rounded hover:bg-secondary-600 shadow"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onView(row)}
 				>
-					<span className="material-symbols-rounded text-sm! ">visibility</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700! ">
+						visibility
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 			<ProtectedAnyPermission
 				permissions={[USER_PERMISSIONS.UPDATE, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-primary text-white px-2 py-1 rounded hover:bg-primary-500 shadow"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onEdit(row)}
 				>
-					<span className="material-symbols-rounded text-sm!">edit</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700!">
+						edit
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 			<ProtectedAnyPermission
 				permissions={[USER_PERMISSIONS.DELETE, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
 					onClick={() => onDelete(row)}
 					disabled={row.id_usuario === user?.id}
 				>
-					<span className="material-symbols-rounded text-sm!">delete</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700!">
+						delete
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 		</div>

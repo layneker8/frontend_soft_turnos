@@ -21,30 +21,36 @@ export default function Buttons({
 				permissions={[SERVICE_PERMISSIONS.READ, SERVICE_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-secondary-500 text-white px-2 py-1 rounded hover:bg-secondary-600 shadow"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onView(row)}
 				>
-					<span className="material-symbols-rounded text-sm!">visibility</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700! ">
+						visibility
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 			<ProtectedAnyPermission
 				permissions={[SERVICE_PERMISSIONS.UPDATE, SERVICE_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-primary text-white px-2 py-1 rounded hover:bg-primary-500 shadow"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onEdit(row)}
 				>
-					<span className="material-symbols-rounded text-sm!">edit</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700!">
+						edit
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 			<ProtectedAnyPermission
 				permissions={[SERVICE_PERMISSIONS.DELETE, SERVICE_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 shadow"
+					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onDelete(row)}
 				>
-					<span className="material-symbols-rounded text-sm!">delete</span>
+					<span className="material-symbols-rounded text-sm! text-secondary-700!">
+						delete
+					</span>
 				</button>
 			</ProtectedAnyPermission>
 		</div>
