@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cubiculoService } from "@/services/cubiculoService";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToastStore } from "@/stores/toastStore";
@@ -6,16 +6,24 @@ import {
 	CUBICULO_PERMISSIONS,
 	SEDE_PERMISSIONS,
 } from "@/constants/permissions";
-// import type { Sede } from "@/@types";
 import type {
 	FullCubiculo,
 	CreateCubiculoData,
 	UpdateCubiculoData,
+	AsignacionesCubiculo,
+	dataAsignacion,
 } from "@/@types/cubiculos";
 import type { FullSede } from "@/@types/sedes";
+import { userService } from "@/services/userService";
+import type { FullUser } from "@/@types/users";
 
 export const useCubiculos = () => {
 	const [cubiculos, setCubiculos] = useState<FullCubiculo[]>([]);
+	const [asignaciones, setAsignaciones] = useState<AsignacionesCubiculo[]>([]);
+	const [cubiculosSedes, setCubiculosSedes] = useState<FullCubiculo[]>([]);
+	const [usuariosSedes, setUsuariosSedes] = useState<FullUser[]>([]);
+	const cubiculosSedesCache = useRef<Record<number, FullCubiculo[]>>({});
+	const usuariosSedesCache = useRef<Record<number, FullUser[]>>({});
 	const [sedes, setSedes] = useState<FullSede[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -95,6 +103,11 @@ export const useCubiculos = () => {
 	const canReadSedes = hasAnyPermission([
 		SEDE_PERMISSIONS.READ,
 		SEDE_PERMISSIONS.MANAGE,
+	]);
+
+	const canAsign = hasAnyPermission([
+		CUBICULO_PERMISSIONS.ASSIGN,
+		CUBICULO_PERMISSIONS.MANAGE,
 	]);
 
 	const loadCubiculos = useCallback(async () => {
@@ -256,16 +269,250 @@ export const useCubiculos = () => {
 		[canDelete, addToast, parseBackendError]
 	);
 
+	// ---------- Asignaciones cubículos -------------
+
+	const loadAsignacionesCubiculos = useCallback(async () => {
+		if (!canAsign) {
+			setError("No tienes permisos para asignar cubículos");
+			return;
+		}
+		setLoading(true);
+		setError(null);
+		try {
+			const data = await cubiculoService.getAllAsignaciones();
+			setAsignaciones(data);
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Error al cargar cubículos";
+			setError(message);
+			addToast({ type: "error", title: "Error", message });
+		} finally {
+			setLoading(false);
+		}
+	}, [canAsign, addToast]);
+
+	//  * Cargar cubículos de una sede específica
+	const loadCubiculosBySede = useCallback(
+		async (sedeId: number) => {
+			if (!canReadSedes && !canAsign) {
+				setCubiculosSedes([]);
+				setUsuariosSedes([]);
+				return;
+			}
+			if (
+				cubiculosSedesCache.current[sedeId] &&
+				usuariosSedesCache.current[sedeId]
+			) {
+				setCubiculosSedes(cubiculosSedesCache.current[sedeId]);
+				setUsuariosSedes(usuariosSedesCache.current[sedeId]);
+				return;
+			}
+			setSaving(true);
+			try {
+				const [sedesData, usuariosData] = await Promise.all([
+					canAsign
+						? cubiculoService.getCubiculosBySede(sedeId)
+						: Promise.resolve([]),
+					canAsign ? userService.getUsersBySede(sedeId) : Promise.resolve([]),
+				]);
+				cubiculosSedesCache.current[sedeId] = sedesData;
+				usuariosSedesCache.current[sedeId] = usuariosData;
+				setCubiculosSedes(sedesData);
+				setUsuariosSedes(usuariosData);
+			} catch (err) {
+				const { message } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				setCubiculosSedes([]);
+			} finally {
+				setSaving(false);
+			}
+		},
+		[canReadSedes, addToast, canAsign, parseBackendError]
+	);
+
+	// obtener una asignación por ID (para editar)
+	const getAsignacionById = useCallback(
+		async (id: number): Promise<AsignacionesCubiculo | null> => {
+			if (!canRead) return null;
+			try {
+				return await cubiculoService.getAsignacionById(id);
+			} catch (err) {
+				console.error("Error obteniendo asignación:", err);
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No se pudo obtener la asignación",
+				});
+				return null;
+			}
+		},
+		[canRead, addToast]
+	);
+
+	const createAsignacion = useCallback(
+		async (
+			data: dataAsignacion
+		): Promise<{
+			ok: boolean;
+			fieldErrors?: Record<string, string>;
+			message?: string;
+		}> => {
+			if (!canAsign) {
+				addToast({
+					type: "error",
+					title: "Sin permisos",
+					message: "No puedes asignar cubículos",
+				});
+				return { ok: false, message: "Sin permisos" };
+			}
+			setSaving(true);
+			try {
+				const created = await cubiculoService.createAsignacion(data);
+				setAsignaciones((prev) => [...prev, created]);
+				addToast({
+					type: "success",
+					title: "Asignación creada",
+					message: `La asignación fue creada exitosamente`,
+				});
+				return { ok: true };
+			} catch (err) {
+				const { message, fieldErrors } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message, fieldErrors };
+			} finally {
+				setSaving(false);
+			}
+		},
+		[canAsign, addToast, parseBackendError]
+	);
+
+	const updateAsignacion = useCallback(
+		async (
+			id: number,
+			data: dataAsignacion
+		): Promise<{
+			ok: boolean;
+			fieldErrors?: Record<string, string>;
+			message?: string;
+		}> => {
+			if (!canAsign) {
+				addToast({
+					type: "error",
+					title: "Sin permisos",
+					message: "No puedes actualizar asignaciones de cubículos",
+				});
+				return { ok: false, message: "Sin permisos" };
+			}
+			setSaving(true);
+			try {
+				const updated = await cubiculoService.updateAsignacion(id, data);
+				setAsignaciones((prev) => prev.map((c) => (c.id === id ? updated : c)));
+				addToast({
+					type: "success",
+					title: "Asignación actualizada",
+					message: `La asignación fue actualizada exitosamente`,
+				});
+				return { ok: true };
+			} catch (err) {
+				const { message, fieldErrors } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message, fieldErrors };
+			} finally {
+				setSaving(false);
+			}
+		},
+		[canAsign, addToast, parseBackendError]
+	);
+
+	const toggleEstadoAsignacion = useCallback(
+		async (id: number): Promise<{ ok: boolean; message?: string }> => {
+			if (!canAsign) {
+				addToast({
+					type: "error",
+					title: "Sin permisos",
+					message: "No puedes actualizar asignaciones de cubículos",
+				});
+				return { ok: false, message: "Sin permisos" };
+			}
+			setSaving(true);
+			try {
+				const asignacion = await cubiculoService.getAsignacionById(id);
+				if (!asignacion) {
+					throw new Error("Asignación no encontrada");
+				}
+				const updated = await cubiculoService.toggleEstadoAsignacion(id);
+				setAsignaciones((prev) => prev.map((c) => (c.id === id ? updated : c)));
+				addToast({
+					type: "success",
+					title: "Asignación actualizada",
+					message: `La asignación fue actualizada exitosamente`,
+				});
+				return { ok: true };
+			} catch (err) {
+				const { message } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message };
+			} finally {
+				setSaving(false);
+			}
+		},
+		[canAsign, addToast, parseBackendError]
+	);
+
+	const deleteAsignacion = useCallback(
+		async (id: number): Promise<{ ok: boolean; message?: string }> => {
+			if (!canDelete) {
+				addToast({
+					type: "error",
+					title: "Sin permisos",
+					message: "No puedes eliminar asignaciones de cubículos",
+				});
+				return { ok: false, message: "Sin permisos" };
+			}
+			setSaving(true);
+			try {
+				await cubiculoService.deleteAsignacion(id);
+				setAsignaciones((prev) => prev.filter((c) => c.id !== id));
+				addToast({
+					type: "success",
+					title: "Asignación eliminada",
+					message: "La asignación fue eliminada exitosamente",
+				});
+				return { ok: true };
+			} catch (err) {
+				const { message } = parseBackendError(err);
+				addToast({ type: "error", title: "Error", message });
+				return { ok: false, message };
+			} finally {
+				setSaving(false);
+			}
+		},
+		[canDelete, addToast, parseBackendError]
+	);
+
 	useEffect(() => {
 		if (canRead) {
 			loadCubiculos();
 		}
+		if (canAsign) {
+			loadAsignacionesCubiculos();
+		}
 		loadAuxiliaryData();
-	}, [canRead, loadCubiculos, loadAuxiliaryData]);
+	}, [
+		canRead,
+		canAsign,
+		loadCubiculos,
+		loadAsignacionesCubiculos,
+		loadAuxiliaryData,
+	]);
 
 	return {
 		cubiculos,
+		cubiculosSedes,
+		usuariosSedes,
+		loadCubiculosBySede,
 		sedes,
+		asignaciones,
 		loading,
 		saving,
 		permissionsLoading,
@@ -274,11 +521,17 @@ export const useCubiculos = () => {
 		canCreate,
 		canUpdate,
 		canDelete,
+		canAsign,
 		loadCubiculos,
 		createCubiculo,
 		updateCubiculo,
 		deleteCubiculo,
+		createAsignacion,
+		updateAsignacion,
+		toggleEstadoAsignacion,
+		deleteAsignacion,
 		getCubiculoById,
+		getAsignacionById,
 		checkUserPermission,
 	};
 };

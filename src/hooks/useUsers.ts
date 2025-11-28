@@ -4,13 +4,13 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useToastStore } from "@/stores/toastStore";
 import { USER_PERMISSIONS, SEDE_PERMISSIONS } from "@/constants/permissions";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
-import type { Rol } from "@/@types/index";
+import type { FullRoles } from "@/@types/roles";
 import type { FullSede } from "@/@types/sedes";
 
 export const useUsers = () => {
 	const [users, setUsers] = useState<FullUser[]>([]);
 	const [sedes, setSedes] = useState<FullSede[]>([]);
-	const [roles, setRoles] = useState<Rol[]>([]);
+	const [roles, setRoles] = useState<FullRoles[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -142,32 +142,6 @@ export const useUsers = () => {
 			});
 		}
 	}, [canReadSedes, addToast]);
-
-	// /**
-	//  * Cargar cubículos de una sede específica
-	//  */
-	// const loadCubiculosBySede = useCallback(
-	// 	async (sedeId: number) => {
-	// 		if (!canReadSedes) {
-	// 			setCubiculos([]);
-	// 			return;
-	// 		}
-
-	// 		try {
-	// 			const cubiculosData = await userService.getCubiculosBySede(sedeId);
-	// 			setCubiculos(cubiculosData);
-	// 		} catch (err) {
-	// 			console.error("Error cargando cubículos:", err);
-	// 			setCubiculos([]);
-	// 			addToast({
-	// 				type: "error",
-	// 				title: "Error",
-	// 				message: "No se pudieron cargar los cubículos de la sede",
-	// 			});
-	// 		}
-	// 	},
-	// 	[canReadSedes, addToast]
-	// );
 
 	/**
 	 * Crear un nuevo usuario

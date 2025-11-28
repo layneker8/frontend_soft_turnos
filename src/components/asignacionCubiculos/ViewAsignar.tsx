@@ -1,43 +1,44 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DataTable, { type TableColumn, Media } from "react-data-table-component";
-import tailwindTheme, { PaginationOptions } from "@/config/StyleTable";
-import { useCubiculos } from "@/hooks/useCubiculos";
-import { ProtectedAnyPermission } from "@/components/common/ProtectedComponent";
 import { CUBICULO_PERMISSIONS } from "@/constants/permissions";
-import Loading from "../common/Loading";
+import { ProtectedAnyPermission } from "../common/ProtectedComponent";
 import Modal from "../common/Modal";
-import type {
-	FullCubiculo,
-	CreateCubiculoData,
-	UpdateCubiculoData,
-} from "@/@types/cubiculos";
-import CubiculoModal from "./CubiculoModal";
+import AsignacionCubiculoModal from "./AsignacionCubiculoModal";
+import { useCubiculos } from "@/hooks/useCubiculos";
+import Loading from "../common/Loading";
+import type { AsignacionesCubiculo, dataAsignacion } from "@/@types/cubiculos";
 import Buttons from "./Buttons";
+import tailwindTheme, { PaginationOptions } from "@/config/StyleTable";
 import { Link } from "react-router-dom";
+import { ToggleCheckBox } from "../common/CheckBox";
 
-const ViewCubiculo: React.FC = () => {
+export default function ViewAsignar() {
 	const {
-		cubiculos,
+		asignaciones,
 		sedes,
+		cubiculosSedes,
+		usuariosSedes,
 		loading,
 		saving,
 		permissionsLoading,
 		error,
-		canRead,
-		createCubiculo,
-		updateCubiculo,
-		deleteCubiculo,
-		getCubiculoById,
+		canAsign,
+		createAsignacion,
+		updateAsignacion,
+		toggleEstadoAsignacion,
+		deleteAsignacion,
+		getAsignacionById,
+		loadCubiculosBySede,
 	} = useCubiculos();
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [selected, setSelected] = useState<FullCubiculo | null>(null);
+	const [selected, setSelected] = useState<AsignacionesCubiculo | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterEstado, setFilterEstado] = useState<"all" | 1 | 0>("all");
 	const [filterSede, setFilterSede] = useState<number>(0);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [viewMode, setViewMode] = useState(false);
-	const [toDelete, setToDelete] = useState<FullCubiculo | null>(null);
+	const [toDelete, setToDelete] = useState<AsignacionesCubiculo | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [formServerError, setFormServerError] = useState<string | undefined>(
 		undefined
@@ -53,9 +54,10 @@ const ViewCubiculo: React.FC = () => {
 	}, [loading, permissionsLoading]);
 
 	const handleView = useCallback(
-		async (cub: FullCubiculo) => {
-			const full = await getCubiculoById(cub.id);
+		async (cub: AsignacionesCubiculo) => {
+			const full = await getAsignacionById(cub.id);
 			if (full) {
+				loadCubiculosBySede(full.id_sede);
 				setViewMode(true);
 				setSelected(full);
 				setIsModalOpen(true);
@@ -63,55 +65,71 @@ const ViewCubiculo: React.FC = () => {
 				setFormFieldErrors(undefined);
 			}
 		},
-		[getCubiculoById]
+		[getAsignacionById, loadCubiculosBySede]
 	);
 
 	const handleEdit = useCallback(
-		async (cub: FullCubiculo) => {
-			const full = await getCubiculoById(cub.id);
+		async (cub: AsignacionesCubiculo) => {
+			const full = await getAsignacionById(cub.id);
 			if (full) {
+				loadCubiculosBySede(full.id_sede);
 				setViewMode(false);
 				setSelected(full);
 				setIsModalOpen(true);
+				setFormServerError(undefined);
+				setFormFieldErrors(undefined);
 			}
 		},
-		[getCubiculoById]
+		[getAsignacionById, loadCubiculosBySede]
 	);
 
-	const columns: TableColumn<FullCubiculo>[] = useMemo(
+	const handleToggleEstado = useCallback(
+		async (cub: AsignacionesCubiculo) => {
+			await toggleEstadoAsignacion(cub.id);
+		},
+		[toggleEstadoAsignacion]
+	);
+
+	const columns: TableColumn<AsignacionesCubiculo>[] = useMemo(
 		() => [
 			{
-				id: "nombre",
-				name: "Nombre",
-				selector: (row) => row.nombre,
+				id: "nombre_sede",
+				name: "Sede",
+				selector: (row) => row.nombre_sede,
+				hide: Media.SM,
 				sortable: true,
 				wrap: true,
 			},
 			{
-				id: "sede",
-				name: "Sede",
-				selector: (row) => row.nombre_sede || "-",
+				id: "cubiculo_nombre",
+				name: "Nombre Cubículo",
+				selector: (row) => row.cubiculo_nombre,
+				sortable: true,
+				wrap: true,
+			},
+			{
+				id: "nombre_user",
+				name: "Usuario Asignado",
+				selector: (row) => row.nombre_user || "-",
 				hide: Media.SM,
 				sortable: true,
 				wrap: true,
 			},
 			{
 				id: "estado",
-				name: "Estado",
-				center: true,
+				name: "Estado Asignación",
 				cell: (row) => (
-					<span className="px-2 py-1 rounded-full text-xs flex items-center bg-secondary-100 text-background-dark shadow">
-						<span
-							className={`material-symbols-rounded text-sm! mr-1 ${
-								row.estado ? "text-green-500" : "text-red-500"
-							}`}
-						>
-							{row.estado ? "check_circle" : "cancel"}
-						</span>
-						{row.estado ? "Activo" : "Inactivo"}
-					</span>
+					<ToggleCheckBox
+						checked={row.estado}
+						onChange={() => handleToggleEstado(row)}
+						disabled={saving}
+					/>
 				),
-				sortable: true,
+				minWidth: "150px",
+				ignoreRowClick: true,
+				allowOverflow: true,
+				button: true,
+				center: true,
 			},
 			{
 				id: "acciones",
@@ -131,26 +149,27 @@ const ViewCubiculo: React.FC = () => {
 				button: true,
 			},
 		],
-		[handleView, handleEdit]
+		[handleView, handleEdit, saving, handleToggleEstado]
 	);
 
-	const filtered = cubiculos.filter((c) => {
+	const filtered = asignaciones.filter((c) => {
 		const matchesSearch =
-			c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			(c.nombre_sede?.toLowerCase().includes(searchTerm.toLowerCase()) ??
-				false);
+			c.nombre_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			c.cubiculo_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			c.nombre_sede.toLowerCase().includes(searchTerm.toLowerCase());
+
+		const matchesSede = filterSede === 0 || c.id_sede === filterSede;
 		const matchesEstado =
 			filterEstado === "all" || c.estado === Boolean(filterEstado);
-		const matchesSede = filterSede === 0 || c.sede_id === filterSede;
-		return matchesSearch && matchesEstado && matchesSede;
+		return matchesSearch && matchesSede && matchesEstado;
 	});
 
-	const handleDelete = (cub: FullCubiculo) => {
+	const handleDelete = (cub: AsignacionesCubiculo) => {
 		setToDelete(cub);
 		setShowDeleteModal(true);
 	};
 
-	const handleCreate = () => {
+	const handleAssign = () => {
 		setSelected(null);
 		setIsModalOpen(true);
 		setViewMode(false);
@@ -158,7 +177,7 @@ const ViewCubiculo: React.FC = () => {
 
 	const confirmDelete = async () => {
 		if (toDelete) {
-			const res = await deleteCubiculo(toDelete.id);
+			const res = await deleteAsignacion(toDelete.id);
 			if (res.ok) {
 				setShowDeleteModal(false);
 				setToDelete(null);
@@ -166,14 +185,11 @@ const ViewCubiculo: React.FC = () => {
 		}
 	};
 
-	const handleModalSubmit = async (
-		data: CreateCubiculoData | Omit<UpdateCubiculoData, "id">
-	) => {
+	const handleModalSubmit = async (data: dataAsignacion) => {
 		setFormServerError(undefined);
 		setFormFieldErrors(undefined);
 		if (selected) {
-			const res = await updateCubiculo(selected.id, {
-				id: selected.id,
+			const res = await updateAsignacion(selected.id, {
 				...data,
 			});
 			if (!res.ok) {
@@ -182,7 +198,7 @@ const ViewCubiculo: React.FC = () => {
 			}
 			return res.ok;
 		}
-		const res = await createCubiculo(data);
+		const res = await createAsignacion(data);
 		if (!res.ok) {
 			setFormServerError(res.message);
 			setFormFieldErrors(res.fieldErrors);
@@ -194,7 +210,7 @@ const ViewCubiculo: React.FC = () => {
 		return <Loading />;
 	}
 
-	if (!canRead) {
+	if (!canAsign) {
 		return (
 			<div className="p-6">
 				<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -208,29 +224,29 @@ const ViewCubiculo: React.FC = () => {
 	}
 
 	return (
-		<div className="p-6">
+		<div className="xl:p-6">
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
 				<div>
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-						Gestión de Cubículos
+						Gestión de Asignación de Cubículos
 					</h1>
 					<p className="text-gray-600 dark:text-gray-400">
-						Administra los cubículos del sistema
+						Administra la asignación de cubículos a usuarios
 					</p>
 				</div>
 				<div className="flex gap-3">
 					<ProtectedAnyPermission
 						permissions={[
-							CUBICULO_PERMISSIONS.CREATE,
+							CUBICULO_PERMISSIONS.ASSIGN,
 							CUBICULO_PERMISSIONS.MANAGE,
 						]}
 					>
 						<button
-							onClick={handleCreate}
+							onClick={handleAssign}
 							className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
 						>
 							<span className="material-symbols-rounded text-sm">add</span>
-							Crear Cubículo
+							Asignar Cubículo
 						</button>
 					</ProtectedAnyPermission>
 					<ProtectedAnyPermission
@@ -240,18 +256,17 @@ const ViewCubiculo: React.FC = () => {
 						]}
 					>
 						<Link
-							to="/dashboard/asignacion-cubiculos"
+							to="/dashboard/cubiculos"
 							className="border-1 border-secondary-500 text-secondary-700 hover:bg-primary-500 hover:text-white hover:border-primary shadow  px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer group"
 						>
 							<span className="material-symbols-rounded text-secondary-700 group-hover:text-white">
-								assignment_add
+								view_list
 							</span>
-							Asignar Cubículos
+							Ver cubículos
 						</Link>
 					</ProtectedAnyPermission>
 				</div>
 			</div>
-
 			<div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
 				<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
 					<div className="flex flex-col sm:flex-row gap-4 flex-1">
@@ -298,7 +313,6 @@ const ViewCubiculo: React.FC = () => {
 					</div>
 				</div>
 			</div>
-
 			{loading && (
 				<div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
 					<div className="flex items-center justify-center">
@@ -306,7 +320,7 @@ const ViewCubiculo: React.FC = () => {
 							refresh
 						</span>
 						<span className="text-gray-600 dark:text-gray-400">
-							Cargando cubículos...
+							Cargando...
 						</span>
 					</div>
 				</div>
@@ -325,23 +339,23 @@ const ViewCubiculo: React.FC = () => {
 				!error &&
 				(filtered.length === 0 ? (
 					<div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-						<span className="material-symbols-rounded text-4xl text-gray-300 mb-4 block">
-							chair
+						<span className="material-symbols-rounded text-7xl! text-gray-300 mb-4 block">
+							search_off
 						</span>
 						<h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-							No se encontraron cubículos
+							No se encontraron asignaciones de cubículos
 						</h3>
 						<p className="text-gray-600 dark:text-gray-400">
 							{searchTerm
 								? "Intenta ajustar los filtros de búsqueda"
-								: "Aún no hay cubículos registrados"}
+								: "No hay registros para mostrar"}
 						</p>
 					</div>
 				) : (
 					<DataTable
 						paginationComponentOptions={PaginationOptions}
 						customStyles={tailwindTheme}
-						noDataComponent="No se encontraron cubículos"
+						noDataComponent="No se encontraron asignaciones de cubículos"
 						pagination
 						responsive
 						columns={columns}
@@ -349,16 +363,19 @@ const ViewCubiculo: React.FC = () => {
 					/>
 				))}
 
-			<CubiculoModal
+			<AsignacionCubiculoModal
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 				onSubmit={handleModalSubmit}
-				cubiculo={selected}
+				asignaciones={selected}
 				sedes={sedes}
+				cubiculos={cubiculosSedes}
+				usuarios={usuariosSedes}
 				loading={saving}
 				viewMode={viewMode}
 				serverError={formServerError}
 				serverFieldErrors={formFieldErrors}
+				loadCubiculosBySede={loadCubiculosBySede}
 			/>
 
 			{showDeleteModal && toDelete && (
@@ -405,9 +422,8 @@ const ViewCubiculo: React.FC = () => {
 									</h3>
 									<div className="mt-2">
 										<p className="text-sm text-gray-500 dark:text-gray-400">
-											¿Estás seguro de que deseas eliminar el cubículo{" "}
-											<strong>{toDelete.nombre}</strong>? Esta acción no se
-											puede deshacer.
+											¿Estás seguro de que deseas eliminar la asignación? Esta
+											acción no se puede deshacer.
 										</p>
 									</div>
 								</div>
@@ -418,6 +434,4 @@ const ViewCubiculo: React.FC = () => {
 			)}
 		</div>
 	);
-};
-
-export default ViewCubiculo;
+}

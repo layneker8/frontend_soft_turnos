@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import type { Rol } from "@/@types";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
 import Modal from "../common/Modal";
 import type { FullSede } from "@/@types/sedes";
+import type { FullRoles } from "@/@types/roles";
 
 interface UserModalProps {
 	isOpen: boolean;
@@ -10,7 +10,7 @@ interface UserModalProps {
 	onSubmit: (userData: CreateUserData | UpdateUserData) => Promise<boolean>;
 	user?: FullUser | null;
 	sedes: FullSede[];
-	roles: Rol[];
+	roles: FullRoles[];
 	loading?: boolean;
 	viewMode?: boolean;
 	serverError?: string;
@@ -303,7 +303,7 @@ const UserModal: React.FC<UserModalProps> = ({
 					<option value={0}>Seleccionar rol</option>
 					{roles.map((rol) => (
 						<option key={rol.id} value={rol.id}>
-							{rol.nombre}
+							{rol.nombre_rol}
 						</option>
 					))}
 				</select>

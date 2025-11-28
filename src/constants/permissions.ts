@@ -35,6 +35,7 @@ export const SERVICE_PERMISSIONS = {
 // Permisos de Cubículos
 export const CUBICULO_PERMISSIONS = {
 	CREATE: "cubiculos.create",
+	ASSIGN: "cubiculos.assign",
 	READ: "cubiculos.read",
 	UPDATE: "cubiculos.update",
 	DELETE: "cubiculos.delete",

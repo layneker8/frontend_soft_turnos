@@ -19,6 +19,7 @@ import ViewPrioridades from "../prioridades/ViewPrioridades";
 import ViewRoles from "../roles/ViewRoles";
 import Loading from "../common/Loading";
 import ViewServicios from "@/components/servicios/ViewServicios";
+import ViewAsignar from "../asignacionCubiculos/ViewAsignar";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -101,6 +102,7 @@ const Home: React.FC = () => {
 						<Route path="sedes" element={<ViewSedes />} />
 						<Route path="roles" element={<ViewRoles />} />
 						<Route path="prioridades" element={<ViewPrioridades />} />
+						<Route path="asignacion-cubiculos" element={<ViewAsignar />} />
 
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />
