@@ -13,6 +13,7 @@ import type {
 } from "@/@types/servicios";
 import { useServicios } from "@/hooks/useServicios";
 import { SERVICE_PERMISSIONS } from "@/constants/permissions";
+import { Link } from "react-router-dom";
 
 const ViewServicios: React.FC = () => {
 	const {
@@ -213,17 +214,37 @@ const ViewServicios: React.FC = () => {
 						Administra los servicios del sistema
 					</p>
 				</div>
-				<ProtectedAnyPermission
-					permissions={[SERVICE_PERMISSIONS.CREATE, SERVICE_PERMISSIONS.MANAGE]}
-				>
-					<button
-						onClick={handleCreate}
-						className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+				<div className="flex gap-2">
+					<ProtectedAnyPermission
+						permissions={[
+							SERVICE_PERMISSIONS.CREATE,
+							SERVICE_PERMISSIONS.MANAGE,
+						]}
 					>
-						<span className="material-symbols-rounded text-sm">add</span>
-						Crear Servicio
-					</button>
-				</ProtectedAnyPermission>
+						<button
+							onClick={handleCreate}
+							className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+						>
+							<span className="material-symbols-rounded text-sm">add</span>
+							Crear Servicio
+						</button>
+					</ProtectedAnyPermission>
+					<ProtectedAnyPermission
+						permissions={[
+							SERVICE_PERMISSIONS.ASSIGN,
+							SERVICE_PERMISSIONS.MANAGE,
+						]}
+					>
+						<Link to="/dashboard/asignacion-servicios">
+							<button className="border-1 border-secondary-500 text-secondary-700 hover:bg-primary-500 hover:text-white hover:border-primary shadow  px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer group">
+								<span className="material-symbols-rounded text-secondary-700 group-hover:text-white">
+									assignment
+								</span>
+								Asignar Servicios
+							</button>
+						</Link>
+					</ProtectedAnyPermission>
+				</div>
 			</div>
 
 			<div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">

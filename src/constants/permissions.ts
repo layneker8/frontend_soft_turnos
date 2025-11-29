@@ -30,6 +30,7 @@ export const SERVICE_PERMISSIONS = {
 	UPDATE: "servicios.update",
 	DELETE: "servicios.delete",
 	MANAGE: "servicios.manage",
+	ASSIGN: "servicios.assign",
 };
 
 // Permisos de Cubículos
