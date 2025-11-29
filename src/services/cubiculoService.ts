@@ -150,25 +150,6 @@ export class CubiculoService {
 		}
 	}
 
-	async updateAsignacion(
-		id: number,
-		data: dataAsignacion
-	): Promise<AsignacionesCubiculo> {
-		try {
-			const response = (await apiService.put(
-				`/api/cubiculos/assignments/${id}`,
-				data
-			)) as ApiResponse<AsignacionesCubiculo>;
-			if ("success" in response && response.success === false) {
-				throw buildResponseError(response, "Error actualizando cubículo");
-			}
-			return response.data;
-		} catch (error) {
-			console.error(`Error actualizando cubículo ${id}:`, error);
-			throw error;
-		}
-	}
-
 	async deleteAsignacion(id: number): Promise<void> {
 		try {
 			await apiService.delete(`/api/cubiculos/assignments/${id}`);

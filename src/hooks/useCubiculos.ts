@@ -386,44 +386,6 @@ export const useCubiculos = () => {
 		[canAsign, addToast, parseBackendError]
 	);
 
-	const updateAsignacion = useCallback(
-		async (
-			id: number,
-			data: dataAsignacion
-		): Promise<{
-			ok: boolean;
-			fieldErrors?: Record<string, string>;
-			message?: string;
-		}> => {
-			if (!canAsign) {
-				addToast({
-					type: "error",
-					title: "Sin permisos",
-					message: "No puedes actualizar asignaciones de cubículos",
-				});
-				return { ok: false, message: "Sin permisos" };
-			}
-			setSaving(true);
-			try {
-				const updated = await cubiculoService.updateAsignacion(id, data);
-				setAsignaciones((prev) => prev.map((c) => (c.id === id ? updated : c)));
-				addToast({
-					type: "success",
-					title: "Asignación actualizada",
-					message: `La asignación fue actualizada exitosamente`,
-				});
-				return { ok: true };
-			} catch (err) {
-				const { message, fieldErrors } = parseBackendError(err);
-				addToast({ type: "error", title: "Error", message });
-				return { ok: false, message, fieldErrors };
-			} finally {
-				setSaving(false);
-			}
-		},
-		[canAsign, addToast, parseBackendError]
-	);
-
 	const toggleEstadoAsignacion = useCallback(
 		async (id: number): Promise<{ ok: boolean; message?: string }> => {
 			if (!canAsign) {
@@ -527,7 +489,6 @@ export const useCubiculos = () => {
 		updateCubiculo,
 		deleteCubiculo,
 		createAsignacion,
-		updateAsignacion,
 		toggleEstadoAsignacion,
 		deleteAsignacion,
 		getCubiculoById,

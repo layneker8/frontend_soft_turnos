@@ -24,10 +24,8 @@ export default function ViewAsignar() {
 		error,
 		canAsign,
 		createAsignacion,
-		updateAsignacion,
 		toggleEstadoAsignacion,
 		deleteAsignacion,
-		getAsignacionById,
 		loadCubiculosBySede,
 	} = useCubiculos();
 
@@ -37,7 +35,6 @@ export default function ViewAsignar() {
 	const [filterEstado, setFilterEstado] = useState<"all" | 1 | 0>("all");
 	const [filterSede, setFilterSede] = useState<number>(0);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
-	const [viewMode, setViewMode] = useState(false);
 	const [toDelete, setToDelete] = useState<AsignacionesCubiculo | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [formServerError, setFormServerError] = useState<string | undefined>(
@@ -52,36 +49,6 @@ export default function ViewAsignar() {
 			setIsInitialized(true);
 		}
 	}, [loading, permissionsLoading]);
-
-	const handleView = useCallback(
-		async (cub: AsignacionesCubiculo) => {
-			const full = await getAsignacionById(cub.id);
-			if (full) {
-				loadCubiculosBySede(full.id_sede);
-				setViewMode(true);
-				setSelected(full);
-				setIsModalOpen(true);
-				setFormServerError(undefined);
-				setFormFieldErrors(undefined);
-			}
-		},
-		[getAsignacionById, loadCubiculosBySede]
-	);
-
-	const handleEdit = useCallback(
-		async (cub: AsignacionesCubiculo) => {
-			const full = await getAsignacionById(cub.id);
-			if (full) {
-				loadCubiculosBySede(full.id_sede);
-				setViewMode(false);
-				setSelected(full);
-				setIsModalOpen(true);
-				setFormServerError(undefined);
-				setFormFieldErrors(undefined);
-			}
-		},
-		[getAsignacionById, loadCubiculosBySede]
-	);
 
 	const handleToggleEstado = useCallback(
 		async (cub: AsignacionesCubiculo) => {
@@ -136,20 +103,13 @@ export default function ViewAsignar() {
 				name: "Acciones",
 				wrap: true,
 				minWidth: "200px",
-				cell: (row) => (
-					<Buttons
-						row={row}
-						onView={handleView}
-						onEdit={handleEdit}
-						onDelete={handleDelete}
-					/>
-				),
+				cell: (row) => <Buttons row={row} onDelete={handleDelete} />,
 				ignoreRowClick: true,
 				allowOverflow: true,
 				button: true,
 			},
 		],
-		[handleView, handleEdit, saving, handleToggleEstado]
+		[saving, handleToggleEstado]
 	);
 
 	const filtered = asignaciones.filter((c) => {
@@ -172,7 +132,6 @@ export default function ViewAsignar() {
 	const handleAssign = () => {
 		setSelected(null);
 		setIsModalOpen(true);
-		setViewMode(false);
 		setFormServerError(undefined);
 		setFormFieldErrors(undefined);
 	};
@@ -190,16 +149,6 @@ export default function ViewAsignar() {
 	const handleModalSubmit = async (data: dataAsignacion) => {
 		setFormServerError(undefined);
 		setFormFieldErrors(undefined);
-		if (selected) {
-			const res = await updateAsignacion(selected.id, {
-				...data,
-			});
-			if (!res.ok) {
-				setFormServerError(res.message);
-				setFormFieldErrors(res.fieldErrors);
-			}
-			return res.ok;
-		}
 		const res = await createAsignacion(data);
 		if (!res.ok) {
 			setFormServerError(res.message);
@@ -218,7 +167,9 @@ export default function ViewAsignar() {
 				<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
 					<div className="flex items-center gap-2 text-red-800 dark:text-red-200">
 						<span className="material-symbols-rounded">block</span>
-						<span>No tienes permisos para ver la gestión de cubículos</span>
+						<span>
+							No tienes permisos para ver la gestión de asignación de cubículos
+						</span>
 					</div>
 				</div>
 			</div>
@@ -374,7 +325,6 @@ export default function ViewAsignar() {
 				cubiculos={cubiculosSedes}
 				usuarios={usuariosSedes}
 				loading={saving}
-				viewMode={viewMode}
 				serverError={formServerError}
 				serverFieldErrors={formFieldErrors}
 				loadCubiculosBySede={loadCubiculosBySede}

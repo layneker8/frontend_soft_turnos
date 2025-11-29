@@ -18,7 +18,6 @@ interface AsignacionCubiculoModalProps {
 	cubiculos: FullCubiculo[];
 	loadCubiculosBySede: (id_sede: number) => Promise<void>;
 	loading?: boolean;
-	viewMode?: boolean;
 	serverError?: string;
 	serverFieldErrors?: Record<string, string>;
 }
@@ -33,7 +32,6 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 	usuarios,
 	loadCubiculosBySede,
 	loading = false,
-	viewMode = false,
 	serverError,
 	serverFieldErrors,
 }) => {
@@ -44,8 +42,6 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 	});
 
 	const [errors, setErrors] = useState<Record<string, string>>({});
-
-	const isEditing = !!asignaciones;
 
 	useEffect(() => {
 		if (isOpen) {
@@ -107,8 +103,9 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 		setFormData((p) => ({
 			...p,
 			id_sede: sedeId,
+			cubiculo_id: 0,
 		}));
-		await loadCubiculosBySede(sedeId);
+		if (sedeId > 0) await loadCubiculosBySede(sedeId);
 	};
 
 	const formBody = (
@@ -124,7 +121,7 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 					Sede *
 				</label>
 				<select
-					disabled={viewMode || loading}
+					disabled={loading}
 					value={formData.id_sede || 0}
 					onChange={(e) => handleLoadCubiculosBySede(Number(e.target.value))}
 					className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
@@ -151,7 +148,7 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 					Cubículo *
 				</label>
 				<select
-					disabled={viewMode || loading}
+					disabled={loading || !formData.id_sede}
 					value={formData.cubiculo_id}
 					onChange={(e) =>
 						setFormData((p) => ({
@@ -183,7 +180,7 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 					Usuario *
 				</label>
 				<select
-					disabled={viewMode || loading}
+					disabled={loading || !formData.id_sede}
 					value={formData.id_usuario}
 					onChange={(e) =>
 						setFormData((p) => ({
@@ -213,37 +210,33 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 
 	const footer = (
 		<div className="flex flex-row-reverse gap-3">
-			{!viewMode && (
-				<button
-					type="button"
-					onClick={handleSubmit}
-					disabled={loading}
-					className="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-				>
-					{loading ? (
-						<>
-							<span className="material-symbols-rounded animate-spin text-sm mr-2">
-								refresh
-							</span>
-							{isEditing ? "Actualizando..." : "Creando..."}
-						</>
-					) : (
-						<>
-							<span className="material-symbols-rounded text-sm mr-2">
-								{isEditing ? "edit" : "add"}
-							</span>
-							{isEditing ? "Actualizar" : "Crear Cubículo"}
-						</>
-					)}
-				</button>
-			)}
+			<button
+				type="button"
+				onClick={handleSubmit}
+				disabled={loading}
+				className="inline-flex justify-center items-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+			>
+				{loading ? (
+					<>
+						<span className="material-symbols-rounded animate-spin text-sm mr-2">
+							refresh
+						</span>
+						Creando...
+					</>
+				) : (
+					<>
+						<span className="material-symbols-rounded text-sm mr-2">add</span>
+						Crear Asignación
+					</>
+				)}
+			</button>
 			<button
 				type="button"
 				onClick={onClose}
 				disabled={loading}
 				className="inline-flex justify-center rounded-md px-4 py-2 bg-white text-base font-medium text-secondary-700 dark:bg-gray-700 dark:text-white sm:text-sm cursor-pointer underline hover:no-underline"
 			>
-				{viewMode ? "Cerrar" : "Cancelar"}
+				Cancelar
 			</button>
 		</div>
 	);
@@ -252,13 +245,7 @@ const AsignacionCubiculoModal: React.FC<AsignacionCubiculoModalProps> = ({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title={
-				viewMode
-					? "Ver Cubículo"
-					: isEditing
-					? "Editar Cubículo"
-					: "Crear Nuevo Cubículo"
-			}
+			title="Crear Nueva Asignación"
 			footer={footer}
 			size="md"
 		>

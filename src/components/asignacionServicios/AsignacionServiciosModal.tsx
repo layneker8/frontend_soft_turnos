@@ -94,7 +94,8 @@ const AsignacionServiciosModal: React.FC<AsignacionServiciosModalProps> = ({
 			id_sede: sedeId,
 			cubiculo_id: 0, // Resetear el cubículo al cambiar de sede
 		}));
-		await loadCubiculosBySede(sedeId);
+
+		if (sedeId > 0) await loadCubiculosBySede(sedeId);
 	};
 
 	const formBody = (
