@@ -142,15 +142,19 @@ const ServiciosModal: React.FC<ServiciosModalProps> = ({
 				<label className="block text-sm font-medium text-secondary-700 dark:text-gray-300 mb-1">
 					Descripción
 				</label>
-				<input
-					type="text"
+				<textarea
 					disabled={viewMode || loading}
+					rows={3}
+					maxLength={255}
 					value={formData.descripcion}
 					onChange={(e) =>
 						setFormData((p) => ({ ...p, descripcion: e.target.value }))
 					}
 					className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 border-gray-300 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
 				/>
+				{errors.descripcion && (
+					<p className="mt-1 text-sm text-red-600">{errors.descripcion}</p>
+				)}
 			</div>
 
 			<div>
