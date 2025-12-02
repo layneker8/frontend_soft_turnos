@@ -1,5 +1,6 @@
 // Funciones API específicas del dominio usando el servicio base
 import { apiService } from "./apiService";
+import { env } from "@/config/env";
 import type { User, LoginCredentials, AuthResponse } from "@/@types";
 
 // === AUTENTICACIÓN ===
@@ -53,19 +54,27 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 // === TURNOS ===
-
-// export const getTurnos = async () => {
-// 	return apiService.get("/api/turnos");
-// };
-
-// export const createTurno = async (turnoData: unknown) => {
-// 	return apiService.post("/api/turnos", turnoData);
-// };
-
-// export const updateTurno = async (id: string, turnoData: unknown) => {
-// 	return apiService.put(`/api/turnos/${id}`, turnoData);
-// };
-
-// export const deleteTurno = async (id: string) => {
-// 	return apiService.delete(`/api/turnos/${id}`);
-// };
+export const getFindClient = async (
+	identification: string
+): Promise<unknown> => {
+	try {
+		const response = await fetch(
+			`${env.API_CONEURO_RESULTADOS}/pacientes/${identification}`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					"X-Key-App": env.API_CONEURO_KEY,
+				},
+			}
+		);
+		const value = await response.json();
+		if (!response.ok) {
+			throw new Error(value.msg || "Error buscando paciente");
+		}
+		return value;
+	} catch (error) {
+		console.error(`Error en GET /pacientes/${identification}:`, error);
+		throw error;
+	}
+};

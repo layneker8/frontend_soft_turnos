@@ -8,12 +8,22 @@ import Login from "@/components/auth/Login";
 import Home from "@/components/dashboard/Home";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ToastContainer from "@/components/common/ToastContainer";
+import ViewCrearTurnos from "./components/turnos/viewAsignacionTurnos";
 
 function App() {
 	return (
 		<Router>
 			<Routes>
 				<Route path="/login" element={<Login />} />
+				<Route
+					path="/create-turnos"
+					element={
+						<ProtectedRoute>
+							<ViewCrearTurnos />
+						</ProtectedRoute>
+					}
+				/>
+
 				{/* Todas las rutas del dashboard usan el mismo layout (Home) */}
 				<Route
 					path="/dashboard/*"

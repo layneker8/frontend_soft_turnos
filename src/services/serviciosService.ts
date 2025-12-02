@@ -25,6 +25,19 @@ export class ServiciosService {
 		}
 	}
 
+	async getActiveServices(id_sede: number): Promise<FullServicios[]> {
+		try {
+			const res = (await apiService.get(
+				`/api/servicios/active/${id_sede}`
+			)) as ApiResponse<FullServicios[]>;
+			const activeServices = res.data || [];
+			return activeServices;
+		} catch (err) {
+			console.error("Error obteniendo servicios activos:", err);
+			throw err;
+		}
+	}
+
 	async getById(id: number): Promise<FullServicios> {
 		try {
 			const res = (await apiService.get(

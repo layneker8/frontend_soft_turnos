@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
 // https://vite.dev/config/
@@ -15,10 +15,10 @@ export default defineConfig({
 		host: "0.0.0.0",
 		port: 5173,
 		proxy: {
-			'/api': {
-				target: process.env.VITE_API_URL || 'http://localhost:3000',
+			"/api": {
+				target: process.env.VITE_API_URL || "http://localhost:3000",
 				changeOrigin: true,
-			}
+			},
 		},
 		watch: {
 			usePolling: false, // DESACTIVADO para desarrollo local
@@ -29,26 +29,26 @@ export default defineConfig({
 				"**/coverage/**",
 				"**/.vscode/**",
 				"**/tmp/**",
-				"**/temp/**"
+				"**/temp/**",
 			],
 		},
 	},
 	build: {
-		target: 'esnext',
-		minify: 'esbuild',
+		target: "esnext",
+		minify: "esbuild",
 		sourcemap: false,
 		rollupOptions: {
 			output: {
 				manualChunks: {
-					vendor: ['react', 'react-dom'],
-					router: ['react-router-dom'],
-					ui: ['lucide-react', 'react-hot-toast']
-				}
-			}
-		}
+					vendor: ["react", "react-dom"],
+					router: ["react-router-dom"],
+					ui: ["lucide-react", "react-hot-toast"],
+				},
+			},
+		},
 	},
 	optimizeDeps: {
-		include: ['react', 'react-dom', 'react-router-dom'],
-		exclude: ['@vite/client', '@vite/env']
+		include: ["react", "react-dom", "react-router-dom"],
+		exclude: ["@vite/client", "@vite/env"],
 	},
 });

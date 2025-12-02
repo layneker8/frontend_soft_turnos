@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { prioridadService } from "@/services/prioridadService";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useToastStore } from "@/stores/toastStore";
-import { PRIORIDADES_PERMISSIONS } from "@/constants/permissions";
+import {
+	PRIORIDADES_PERMISSIONS,
+	TURNO_PERMISSIONS,
+} from "@/constants/permissions";
 import type {
 	FullPrioridad,
 	CreatePrioridadData,
@@ -82,8 +85,13 @@ export const usePrioridades = () => {
 		PRIORIDADES_PERMISSIONS.MANAGE,
 	]);
 
+	const canCreateTurno = hasAnyPermission([
+		TURNO_PERMISSIONS.CREATE,
+		PRIORIDADES_PERMISSIONS.MANAGE,
+	]);
+
 	const loadPrioridades = useCallback(async () => {
-		if (!canRead) {
+		if (!canRead && !canCreateTurno) {
 			setError("No tienes permisos para ver prioridades");
 			return;
 		}
@@ -100,7 +108,7 @@ export const usePrioridades = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [canRead, addToast]);
+	}, [canRead, addToast, canCreateTurno]);
 
 	const getPrioridadById = useCallback(
 		async (id: number): Promise<FullPrioridad | null> => {

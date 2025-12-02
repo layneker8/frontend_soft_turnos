@@ -54,16 +54,19 @@ export const usePermissions = () => {
 	/**
 	 * Verificar que el usuario tenga TODOS los permisos especificados (AND)
 	 */
-	const hasAllPermissions = (permissions: string[]): boolean => {
-		if (!isAuthenticated || permissions.length === 0) {
-			return false;
-		}
+	const hasAllPermissions = useCallback(
+		(permissions: string[]): boolean => {
+			if (!isAuthenticated || permissions.length === 0) {
+				return false;
+			}
 
-		const results = checkMultiplePermissions(permissions);
-		return Object.values(results).every(
-			(hasPermission) => hasPermission === true
-		);
-	};
+			const results = checkMultiplePermissions(permissions);
+			return Object.values(results).every(
+				(hasPermission) => hasPermission === true
+			);
+		},
+		[checkMultiplePermissions, isAuthenticated]
+	);
 
 	/**
 	 * Verificar que el usuario tenga AL MENOS UNO de los permisos especificados (OR)

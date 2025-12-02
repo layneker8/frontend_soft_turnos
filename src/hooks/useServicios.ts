@@ -6,7 +6,10 @@ import type {
 	CreateServiciosData,
 	UpdateServiciosData,
 } from "@/@types/servicios";
-import { SERVICE_PERMISSIONS } from "@/constants/permissions";
+import {
+	SERVICE_PERMISSIONS,
+	TURNO_PERMISSIONS,
+} from "@/constants/permissions";
 import { serviciosService } from "@/services/serviciosService";
 
 export const useServicios = () => {
@@ -82,6 +85,11 @@ export const useServicios = () => {
 		SERVICE_PERMISSIONS.MANAGE,
 	]);
 
+	const canCreateTurno = hasAnyPermission([
+		TURNO_PERMISSIONS.CREATE,
+		SERVICE_PERMISSIONS.MANAGE,
+	]);
+
 	const loadservicios = useCallback(async () => {
 		if (!canRead) {
 			setError("No tienes permisos para ver servicios");
@@ -101,6 +109,33 @@ export const useServicios = () => {
 			setLoading(false);
 		}
 	}, [canRead, addToast]);
+
+	const getServicesActive = useCallback(
+		async (id_sede: number): Promise<FullServicios[]> => {
+			if (!canCreateTurno && !canRead) {
+				setError("No tienes permisos para ver servicios");
+				return [];
+			}
+			setLoading(true);
+			setError(null);
+			try {
+				if (!id_sede) throw new Error("ID de sede inválido");
+				const activeServices = await serviciosService.getActiveServices(
+					id_sede
+				);
+				return activeServices;
+			} catch (err) {
+				const message =
+					err instanceof Error ? err.message : "Error al cargar servicios";
+				setError(message);
+				addToast({ type: "error", title: "Error", message });
+				return [];
+			} finally {
+				setLoading(false);
+			}
+		},
+		[canCreateTurno, addToast, canRead]
+	);
 
 	const getServicioById = useCallback(
 		async (id: number): Promise<FullServicios | null> => {
@@ -246,5 +281,6 @@ export const useServicios = () => {
 		deleteServicio,
 		getServicioById,
 		checkUserPermission,
+		getServicesActive,
 	};
 };

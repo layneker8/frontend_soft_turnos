@@ -11,7 +11,7 @@ const useStep = () => {
 			setCurrentStep(step);
 		}
 	};
-	return { currentStep, goToStep };
+	return { currentStep, goToStep, setCurrentStep };
 };
 
 export default useStep;

@@ -8,6 +8,8 @@ export interface EnvConfig {
 	AUTH_TOKEN?: string;
 	isDevelopment: boolean;
 	isProduction: boolean;
+	API_CONEURO_RESULTADOS: string;
+	API_CONEURO_KEY: string;
 }
 
 /* Tipos para autenticación */
@@ -19,6 +21,9 @@ export interface User {
 	email: string;
 	area?: string;
 	id_rol: number;
+	rol?: string;
+	id_sede: number;
+	sede?: string;
 }
 
 export interface LoginCredentials {
@@ -35,20 +40,6 @@ export interface AuthResponse {
 	error?: string;
 }
 
-/* Tipos para turnos */
-export interface Turno {
-	id: string;
-	cliente: string;
-	servicio: string;
-	fecha: string;
-	hora: string;
-	estado: "pendiente" | "en-progreso" | "completado" | "cancelado";
-	observaciones?: string;
-	usuarioId?: string;
-	createdAt?: string;
-	updatedAt?: string;
-}
-
 /* Tipos para notificaciones */
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -58,17 +49,4 @@ export interface Toast {
 	title: string;
 	message?: string;
 	duration?: number;
-}
-export interface Rol {
-	id: number;
-	nombre: string;
-	descripcion: string;
-	created_at: string;
-}
-
-// Tipos para eventos de Socket.IO
-export interface SocketEvents {
-	"turno:actualizado": (turno: Turno) => void;
-	"estado:inicial": (data: { turnos: Turno[] }) => void;
-	"solicitar:actualizacion": () => void;
 }

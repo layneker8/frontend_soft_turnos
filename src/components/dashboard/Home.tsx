@@ -9,8 +9,7 @@ import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import Footer from "./Footer";
 import DashboardMain from "./DashboardMain";
-import ViewTurnos from "../turnos/viewTurnos";
-import ViewAsignacionTurnos from "../turnos/viewAsignacionTurnos";
+import ViewTurnos from "../turnos/ViewTurnos";
 import NotFound404 from "../common/NotFound404";
 import ViewUsers from "../users/viewUsers";
 import ViewCubiculo from "../cubiculos/ViewCubiculo";
@@ -54,7 +53,7 @@ const Home: React.FC = () => {
 	return (
 		<div className="grid grid-cols-12 min-h-screen overflow-hidden relative ease-in bg-background-light dark:bg-background-dark font-display">
 			{/* Sidebar */}
-			<Sidebar />
+			<Sidebar open={true} />
 			<div className="flex flex-col h-screen col-span-12 sm:col-span-10 md:col-span-9 xl:col-span-10">
 				{/* Header */}
 				<Header
@@ -70,10 +69,7 @@ const Home: React.FC = () => {
 						<Route index element={<DashboardMain />} />
 						{/* Rutas específicas */}
 						<Route path="turnos" element={<ViewTurnos />} />
-						<Route
-							path="asignacion-turnos"
-							element={<ViewAsignacionTurnos />}
-						/>
+
 						{/* Puedes agregar más rutas aquí */}
 						<Route
 							path="usuarios"
@@ -94,10 +90,6 @@ const Home: React.FC = () => {
 						<Route
 							path="pacientes"
 							element={<div>Vista de Pacientes - Próximamente</div>}
-						/>
-						<Route
-							path="configuracion"
-							element={<div>Vista de Configuración - Próximamente</div>}
 						/>
 						<Route path="cubiculos" element={<ViewCubiculo />} />
 						<Route path="sedes" element={<ViewSedes />} />

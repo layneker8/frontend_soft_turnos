@@ -92,14 +92,24 @@ const sidebarItems: SidebarItem[] = [
 			any: [ALL_PERMISSIONS.ADMIN.MANAGE_ROLES],
 		},
 	},
+	{
+		label: "Crear Turnos",
+		path: "/create-turnos",
+		icon: "assignment",
+		module: "turnos",
+		requiredPermissions: {
+			any: [ALL_PERMISSIONS.TURNO.CREATE],
+		},
+	},
 ];
 
 // Componente para renderizar un elemento del sidebar
 const SidebarLink: React.FC<{
+	open: boolean;
 	item: SidebarItem;
 	isActive: boolean;
 	onClick: () => void;
-}> = ({ item, isActive, onClick }) => {
+}> = ({ open, item, isActive, onClick }) => {
 	const { checkUserPermission, checkComplexPermissions } = usePermissions();
 	const [hasPermission, setHasPermission] = React.useState<boolean | null>(
 		null
@@ -159,12 +169,12 @@ const SidebarLink: React.FC<{
 			onClick={onClick}
 		>
 			<span className="material-symbols-rounded">{item.icon}</span>
-			<span className="sm:hidden md:block">{item.label}</span>
+			{open && <span className="sm:hidden md:block">{item.label}</span>}
 		</Link>
 	);
 };
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<{ open: boolean }> = ({ open }) => {
 	const { sidebarOpen, toggleSidebar } = useAppStore();
 	const location = useLocation();
 
@@ -173,7 +183,7 @@ const Sidebar: React.FC = () => {
 			{/* Overlay para móvil */}
 			<div
 				className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 sm:hidden ${
-					sidebarOpen
+					open && sidebarOpen
 						? "opacity-100 pointer-events-auto"
 						: "opacity-0 pointer-events-none"
 				}`}
@@ -183,7 +193,11 @@ const Sidebar: React.FC = () => {
 				className={`
                     fixed z-50 top-0 left-0 h-full bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 p-4
                     transition-transform duration-300 ease-in-out
-                    ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full"}
+                    ${
+											open && sidebarOpen
+												? "translate-x-0 w-64"
+												: "-translate-x-full"
+										}
                     sm:static sm:translate-x-0 sm:flex sm:col-span-2 md:col-span-3 sm:flex-col xl:col-span-2
                 `}
 			>
@@ -215,12 +229,15 @@ const Sidebar: React.FC = () => {
 							}
 						>
 							<span className="material-symbols-rounded">dashboard</span>
-							<span className="sm:hidden md:block">Inicio</span>
+							{open && sidebarOpen && (
+								<span className="md:block">Dashboard</span>
+							)}
 						</Link>
 
 						{/* Enlaces con permisos dinámicos */}
 						{sidebarItems.map((item) => (
 							<SidebarLink
+								open={open && sidebarOpen}
 								key={item.path}
 								item={item}
 								isActive={location.pathname === item.path}
