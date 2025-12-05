@@ -146,9 +146,15 @@ const SidebarLink: React.FC<{
 	// No mostrar mientras carga
 	if (loading) {
 		return (
-			<div className="flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 animate-pulse">
+			<div
+				className={`flex items-center gap-3 rounded-lg px-3 py-2 animate-pulse ${
+					open ? "justify-start" : "md:justify-center"
+				}`}
+			>
 				<div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
-				<div className="sm:hidden md:block w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+				{open && (
+					<div className="w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+				)}
 			</div>
 		);
 	}
@@ -161,20 +167,23 @@ const SidebarLink: React.FC<{
 	return (
 		<Link
 			to={item.path}
-			className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+			className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+				open ? "justify-start" : "md:justify-center"
+			} ${
 				isActive
 					? "bg-primary/20 dark:bg-primary/30 text-primary"
 					: "text-secondary hover:bg-slate-100 dark:hover:bg-slate-800"
 			}`}
+			title={!open ? item.label : ""}
 			onClick={onClick}
 		>
 			<span className="material-symbols-rounded">{item.icon}</span>
-			{open && <span className="sm:hidden md:block">{item.label}</span>}
+			{open && <span className="whitespace-nowrap">{item.label}</span>}
 		</Link>
 	);
 };
 
-const Sidebar: React.FC<{ open: boolean }> = ({ open }) => {
+const Sidebar: React.FC = () => {
 	const { sidebarOpen, toggleSidebar } = useAppStore();
 	const location = useLocation();
 
@@ -182,8 +191,8 @@ const Sidebar: React.FC<{ open: boolean }> = ({ open }) => {
 		<>
 			{/* Overlay para móvil */}
 			<div
-				className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 sm:hidden ${
-					open && sidebarOpen
+				className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 md:hidden ${
+					sidebarOpen
 						? "opacity-100 pointer-events-auto"
 						: "opacity-0 pointer-events-none"
 				}`}
@@ -191,23 +200,32 @@ const Sidebar: React.FC<{ open: boolean }> = ({ open }) => {
 			/>
 			<aside
 				className={`
-                    fixed z-50 top-0 left-0 h-full bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 p-4
-                    transition-transform duration-300 ease-in-out
+                    fixed top-0 left-0 h-screen bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 p-4
+                    transition-all duration-300 ease-in-out overflow-y-auto
+                    z-50 md:z-40
                     ${
-											open && sidebarOpen
+											/* En móvil: mostrar/ocultar completamente */
+											sidebarOpen
 												? "translate-x-0 w-64"
-												: "-translate-x-full"
+												: "-translate-x-full md:translate-x-0"
 										}
-                    sm:static sm:translate-x-0 sm:flex sm:col-span-2 md:col-span-3 sm:flex-col xl:col-span-2
+                    ${
+											/* En desktop (md+): contraer/expandir */
+											sidebarOpen ? "md:w-64" : "md:w-20"
+										}
                 `}
 			>
-				<div className="mb-3 h-[60px] w-auto flex items-center justify-between sm:block">
-					<h1 className="text-xl font-bold text-slate-900 dark:text-white px-2">
+				<div className="mb-3 h-[60px] w-auto flex items-center justify-between md:justify-center">
+					<h1
+						className={`text-xl font-bold text-slate-900 dark:text-white px-2 transition-opacity duration-300 ${
+							sidebarOpen ? "opacity-100" : "md:opacity-0 md:hidden"
+						}`}
+					>
 						Iturno
 					</h1>
 					{/* Botón cerrar solo en móvil */}
 					<button
-						className="sm:hidden p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+						className="md:hidden p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800"
 						onClick={toggleSidebar}
 						aria-label="Cerrar menú"
 					>
@@ -219,30 +237,33 @@ const Sidebar: React.FC<{ open: boolean }> = ({ open }) => {
 						{/* Enlace al Dashboard principal - siempre visible */}
 						<Link
 							to="/dashboard"
-							className={`flex justify-start items-center gap-3 sm:justify-center md:justify-start md:items-center md:gap-3 rounded-lg px-3 py-2 transition-colors ${
+							className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+								sidebarOpen ? "justify-start" : "md:justify-center"
+							} ${
 								location.pathname === "/dashboard"
 									? "bg-primary/20 dark:bg-primary/30 text-primary"
 									: "text-secondary hover:bg-slate-100 dark:hover:bg-slate-800"
 							}`}
+							title={!sidebarOpen ? "Dashboard" : ""}
 							onClick={() =>
-								sidebarOpen && window.innerWidth < 640 && toggleSidebar()
+								sidebarOpen && window.innerWidth < 768 && toggleSidebar()
 							}
 						>
 							<span className="material-symbols-rounded">dashboard</span>
-							{open && sidebarOpen && (
-								<span className="md:block">Dashboard</span>
+							{sidebarOpen && (
+								<span className="whitespace-nowrap">Dashboard</span>
 							)}
 						</Link>
 
 						{/* Enlaces con permisos dinámicos */}
 						{sidebarItems.map((item) => (
 							<SidebarLink
-								open={open && sidebarOpen}
+								open={sidebarOpen}
 								key={item.path}
 								item={item}
 								isActive={location.pathname === item.path}
 								onClick={() =>
-									sidebarOpen && window.innerWidth < 640 && toggleSidebar()
+									sidebarOpen && window.innerWidth < 768 && toggleSidebar()
 								}
 							/>
 						))}

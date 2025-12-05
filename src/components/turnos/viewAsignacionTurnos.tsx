@@ -11,7 +11,7 @@ import { useTurnos } from "@/hooks/useTurnos";
 import type { Turno } from "../../@types/turnos";
 import ClienteModal from "./ClienteModal";
 import type { FullCliente } from "@/@types/clientes";
-import Sidebar from "../dashboard/Sidebar";
+import { Link } from "react-router-dom";
 
 interface stateAsignacionTurnos {
 	identification: number | string;
@@ -220,7 +220,6 @@ const ViewCrearTurnos: React.FC = () => {
 
 	return (
 		<div className="bg-background-light dark:bg-background-dark h-screen">
-			<Sidebar open={false} />
 			{/* Header */}
 			<Header
 				user={user}
@@ -239,6 +238,9 @@ const ViewCrearTurnos: React.FC = () => {
 						<div className="mb-6">
 							<div className="flex justify-between text-sm font-medium text-secondary mb-2">
 								<span>Paso {currentStep} de 4</span>
+								<Link className="underline" to="/dashboard">
+									Ir al panel
+								</Link>
 							</div>
 							<div className="w-full bg-border-light dark:bg-border-dark rounded-full h-2.5">
 								<div
@@ -248,6 +250,7 @@ const ViewCrearTurnos: React.FC = () => {
 								></div>
 							</div>
 						</div>
+
 						{/* Step 1: identificar usuario */}
 						<div
 							className={`${

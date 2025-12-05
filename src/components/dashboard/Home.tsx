@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-// import { useAppStore } from '@/stores/appStore';
+import { useAppStore } from "@/stores/appStore";
 import { useToastStore } from "@/stores/toastStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Header from "./Header";
@@ -26,7 +26,7 @@ const Home: React.FC = () => {
 
 	// Zustand stores
 	const { user, logout } = useAuthStore();
-	// const { turnos } = useAppStore();
+	const { sidebarOpen } = useAppStore();
 	const { addToast } = useToastStore();
 	// Custom hooks
 	const { darkMode, toggleDarkMode } = useDarkMode();
@@ -51,10 +51,15 @@ const Home: React.FC = () => {
 	};
 
 	return (
-		<div className="grid grid-cols-12 min-h-screen overflow-hidden relative ease-in bg-background-light dark:bg-background-dark font-display">
+		<div className="min-h-screen bg-background-light dark:bg-background-dark font-display">
 			{/* Sidebar */}
-			<Sidebar open={true} />
-			<div className="flex flex-col h-screen col-span-12 sm:col-span-10 md:col-span-9 xl:col-span-10">
+			<Sidebar />
+			{/* Main container - En móvil ocupa 100%, en desktop se ajusta al sidebar */}
+			<div
+				className={`flex flex-col min-h-screen transition-all duration-300 ${
+					sidebarOpen ? "md:ml-64" : "md:ml-20"
+				}`}
+			>
 				{/* Header */}
 				<Header
 					user={user}
