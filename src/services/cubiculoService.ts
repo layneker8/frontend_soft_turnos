@@ -1,7 +1,7 @@
 import type { FullSede } from "@/@types/sedes";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
-// import type { Sede } from "@/@types";
+
 import type {
 	FullCubiculo,
 	CreateCubiculoData,
@@ -118,6 +118,23 @@ export class CubiculoService {
 			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo asignaciones de cubículos:", error);
+			throw error;
+		}
+	}
+
+	async getAsignacionByUser(
+		id_user: number
+	): Promise<AsignacionesCubiculo | null> {
+		try {
+			const response = (await apiService.get(
+				`/api/cubiculos/assignments/user/${id_user}`
+			)) as ApiResponse<AsignacionesCubiculo>;
+			return response.data || null;
+		} catch (error) {
+			console.error(
+				`Error obteniendo asignación del usuario ID ${id_user}:`,
+				error
+			);
 			throw error;
 		}
 	}

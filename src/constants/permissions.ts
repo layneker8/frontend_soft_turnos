@@ -19,7 +19,6 @@ export const TURNO_PERMISSIONS = {
 	CALL: "turnos.call",
 	FINISH: "turnos.finish",
 	CANCEL: "turnos.cancel",
-	VIEW_ALL: "turnos.view_all",
 	MANAGE_QUEUE: "turnos.manage_queue",
 };
 

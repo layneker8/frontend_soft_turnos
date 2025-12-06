@@ -101,6 +101,34 @@ const sidebarItems: SidebarItem[] = [
 			any: [ALL_PERMISSIONS.TURNO.CREATE],
 		},
 	},
+	{
+		label: "Mi puesto",
+		path: "/dashboard/mi-puesto",
+		icon: "person_pin",
+		module: "turnos",
+		requiredPermissions: {
+			all: [
+				ALL_PERMISSIONS.TURNO.CALL,
+				ALL_PERMISSIONS.TURNO.FINISH,
+				ALL_PERMISSIONS.TURNO.CANCEL,
+				ALL_PERMISSIONS.TURNO.UPDATE,
+			],
+		},
+	},
+	{
+		label: "Historial de Turnos",
+		path: "/dashboard/historial-turnos",
+		icon: "history",
+		module: "turnos",
+		requiredPermissions: {
+			all: [
+				ALL_PERMISSIONS.TURNO.CALL,
+				ALL_PERMISSIONS.TURNO.FINISH,
+				ALL_PERMISSIONS.TURNO.CANCEL,
+				ALL_PERMISSIONS.TURNO.UPDATE,
+			],
+		},
+	},
 ];
 
 // Componente para renderizar un elemento del sidebar

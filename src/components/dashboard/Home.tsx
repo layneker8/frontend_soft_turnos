@@ -20,6 +20,7 @@ import Loading from "../common/Loading";
 import ViewServicios from "@/components/servicios/ViewServicios";
 import ViewAsignar from "../asignacionCubiculos/ViewAsignar";
 import ViewAsignacionServicios from "../asignacionServicios/ViewAsignacionServicios";
+import ViewMain from "../mi_puesto/ViewMain";
 
 const Home: React.FC = () => {
 	const navigate = useNavigate();
@@ -109,6 +110,8 @@ const Home: React.FC = () => {
 								</Suspense>
 							}
 						/>
+						{/* <Route path="mi-puesto" element={<ViewMipuesto />} /> */}
+						<Route path="mi-puesto" element={<ViewMain />} />
 
 						{/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
 						<Route path="*" element={<NotFound404 />} />
