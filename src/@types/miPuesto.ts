@@ -31,9 +31,3 @@ export interface CubiculoDisponible {
 	disponible: boolean;
 	ocupado_por?: string;
 }
-
-export interface CambiarEstadoTurnoData {
-	turno_id: string;
-	estado: "atendiendo" | "finalizado" | "cancelado";
-	observaciones?: string;
-}

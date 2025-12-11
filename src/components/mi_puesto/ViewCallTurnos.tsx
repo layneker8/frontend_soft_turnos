@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
 import { useMiPuestoAtencion } from "@/hooks/useMiPuestoAtencion";
 import Button from "../common/Button";
+import FinalizarModal from "./FinalizarModal";
+import type { FinalizarData } from "@/@types";
 
 export default function ViewCallTurnos() {
 	const { user } = useAuthStore();
@@ -20,6 +22,8 @@ export default function ViewCallTurnos() {
 	} = useMiPuestoAtencion();
 
 	const [horaActual, setHoraActual] = useState("");
+	const [showFinalizarModal, setShowFinalizarModal] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Actualizar hora cada segundo
 	useEffect(() => {
@@ -67,15 +71,26 @@ export default function ViewCallTurnos() {
 
 	const handleRellamarTurno = async () => {
 		if (!turnoActual) return;
-		await rellamarTurno(turnoActual.id);
+		await rellamarTurno(turnoActual.id.toString());
 	};
 
 	const handleCancelarTurno = async () => {
 		await cancelarTurno("Turno cancelado por el usuario");
 	};
 
-	const handleFinalizarTurno = async () => {
-		await finalizarTurno();
+	const handleFinalizarTurno = async (data: FinalizarData) => {
+		setIsSubmitting(true);
+		const success = await finalizarTurno(data.observaciones);
+		setIsSubmitting(false);
+		return success;
+	};
+
+	const handleOpenFinalizarModal = () => {
+		setShowFinalizarModal(true);
+	};
+
+	const handleCloseFinalizarModal = () => {
+		setShowFinalizarModal(false);
 	};
 
 	const handlePausarReanudar = async () => {
@@ -239,7 +254,7 @@ export default function ViewCallTurnos() {
 						</div>
 						<div className="flex pt-4 justify-center">
 							<button
-								onClick={handleFinalizarTurno}
+								onClick={handleOpenFinalizarModal}
 								className="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-8 bg-primary text-gray-900 dark:text-white text-lg font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors gap-2"
 							>
 								<span className="material-symbols-rounded">check_circle</span>
@@ -321,6 +336,17 @@ export default function ViewCallTurnos() {
 					</div>
 				)}
 			</div>
+
+			{/* Modal de Finalizar */}
+			{turnoActual && (
+				<FinalizarModal
+					isOpen={showFinalizarModal}
+					onClose={handleCloseFinalizarModal}
+					onSubmit={handleFinalizarTurno}
+					turno={turnoActual}
+					loading={isSubmitting}
+				/>
+			)}
 		</div>
 	);
 }

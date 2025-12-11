@@ -27,7 +27,7 @@ export interface LlamarTurnoData {
 }
 
 export interface TurnoLlamado {
-	id: string;
+	id: number;
 	codigo_turno: string;
 	cliente_id: number;
 	servicio_id: number;
@@ -53,6 +53,17 @@ export interface TurnoLlamado {
 	};
 	servicio: string;
 	nombre_prioridad: string;
+}
+
+export interface CambiarEstadoTurnoData {
+	turno_id: string;
+	estado: "atendiendo" | "finalizado" | "cancelado";
+	observaciones?: string;
+}
+
+export interface FinalizarData {
+	turno_id: string;
+	observaciones?: string;
 }
 
 // Tipos para eventos de Socket.IO

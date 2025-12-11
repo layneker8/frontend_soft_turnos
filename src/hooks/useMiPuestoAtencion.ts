@@ -257,7 +257,7 @@ export const useMiPuestoAtencion = () => {
 		setLoading(true);
 		try {
 			const turno = await turnoService.cambiarEstadoTurno({
-				turno_id: turnoActual.id,
+				turno_id: turnoActual.id.toString(),
 				estado: "atendiendo",
 			});
 			setTurnoActual(turno);
@@ -287,9 +287,8 @@ export const useMiPuestoAtencion = () => {
 
 			setLoading(true);
 			try {
-				await turnoService.cambiarEstadoTurno({
-					turno_id: turnoActual.id,
-					estado: "finalizado",
+				await turnoService.finalizarTurno({
+					turno_id: turnoActual.id.toString(),
 					observaciones,
 				});
 				setTurnoActual(null);
@@ -332,7 +331,7 @@ export const useMiPuestoAtencion = () => {
 			setLoading(true);
 			try {
 				await turnoService.cambiarEstadoTurno({
-					turno_id: turnoActual.id,
+					turno_id: turnoActual.id.toString(),
 					estado: "cancelado",
 					observaciones,
 				});
