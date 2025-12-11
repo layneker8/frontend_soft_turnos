@@ -1,4 +1,10 @@
-import type { CreateTurnoData, Turno } from "@/@types/turnos";
+import type {
+	CambiarEstadoTurnoData,
+	CreateTurnoData,
+	LlamarTurnoData,
+	Turno,
+	TurnoLlamado,
+} from "@/@types";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
 
@@ -8,30 +14,6 @@ interface ApiResponse<T> {
 	error?: string;
 }
 export class TurnoService {
-	// async getAll(): Promise<FullSede[]> {
-	// 	try {
-	// 		const res = (await apiService.get("/api/sedes")) as ApiResponse<
-	// 			FullSede[]
-	// 		>;
-	// 		return res.data || [];
-	// 	} catch (err) {
-	// 		console.error("Error obteniendo sedes:", err);
-	// 		throw err;
-	// 	}
-	// }
-
-	// async getById(id: number): Promise<FullSede> {
-	// 	try {
-	// 		const res = (await apiService.get(
-	// 			`/api/sedes/${id}`
-	// 		)) as ApiResponse<FullSede>;
-	// 		return res.data;
-	// 	} catch (err) {
-	// 		console.error(`Error obteniendo sede ${id}:`, err);
-	// 		throw err;
-	// 	}
-	// }
-
 	async create(data: CreateTurnoData): Promise<Turno> {
 		try {
 			const res = (await apiService.post(
@@ -47,30 +29,63 @@ export class TurnoService {
 			throw err;
 		}
 	}
-	// async update(id: number, data: UpdateSedeData): Promise<FullSede> {
-	//     try {
-	//         const res = (await apiService.put(
-	//             `/api/sedes/${id}`,
-	//             data
-	//         )) as ApiResponse<FullSede>;
-	//         if ("success" in res && res.success === false) {
-	//             throw buildResponseError(res, "Error actualizando sede");
-	//         }
-	//         return res.data;
-	//     } catch (err) {
-	//         console.error(`Error actualizando sede ${id}:`, err);
-	//         throw err;
-	//     }
-	// }
 
-	// async delete(id: number): Promise<void> {
-	//     try {
-	//         await apiService.delete(`/api/sedes/${id}`);
-	//     } catch (err) {
-	//         console.error(`Error eliminando sede ${id}:`, err);
-	//         throw err;
-	//     }
-	// }
+	// Cambiar estado del turno (atendiendo, finalizado, cancelado)
+	async cambiarEstadoTurno(
+		data: CambiarEstadoTurnoData
+	): Promise<TurnoLlamado> {
+		try {
+			const response = (await apiService.put(
+				"/api/mi-puesto/estado-turno",
+				data
+			)) as ApiResponse<TurnoLlamado>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error cambiando estado del turno");
+			}
+
+			return response.data;
+		} catch (error) {
+			console.error("Error cambiando estado del turno:", error);
+			throw error;
+		}
+	}
+
+	// Llamar el siguiente turno
+	async llamarTurno(data: LlamarTurnoData): Promise<TurnoLlamado> {
+		try {
+			const response = (await apiService.post(
+				"/api/turnos/call-next",
+				data
+			)) as ApiResponse<TurnoLlamado>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error llamando turno");
+			}
+			return response.data;
+		} catch (error) {
+			console.error("Error llamando turno:", error);
+			throw error;
+		}
+	}
+
+	// Rellamar el mismo turno
+	async rellamarTurno(turno_id: string): Promise<TurnoLlamado> {
+		try {
+			const response = (await apiService.get(
+				`/api/turnos/call-current/${turno_id}`
+			)) as ApiResponse<TurnoLlamado>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error volviendo a llamar turno");
+			}
+
+			return response.data;
+		} catch (error) {
+			console.error("Error volviendo a llamar turno:", error);
+			throw error;
+		}
+	}
 }
 
 export const turnoService = new TurnoService();

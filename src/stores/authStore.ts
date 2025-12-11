@@ -134,6 +134,7 @@ export const useAuthStore = create<AuthState>()(
 					});
 
 					localStorage.removeItem("auth-storage");
+					localStorage.removeItem("mi-puesto-store"); // limpiamos también el store de mi puesto
 				}
 			},
 

@@ -12,6 +12,9 @@ export interface EnvConfig {
 	API_CONEURO_KEY: string;
 }
 
+export * from "./miPuesto";
+export * from "./cubiculos";
+export * from "./turnos";
 /* Tipos para autenticación */
 export interface User {
 	id: number;

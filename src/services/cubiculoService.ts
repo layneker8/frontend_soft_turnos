@@ -122,13 +122,13 @@ export class CubiculoService {
 		}
 	}
 
-	async getAsignacionByUser(
+	async getCubiculosAsignacionByUser(
 		id_user: number
-	): Promise<AsignacionesCubiculo | null> {
+	): Promise<AsignacionesCubiculo[] | null> {
 		try {
 			const response = (await apiService.get(
 				`/api/cubiculos/assignments/user/${id_user}`
-			)) as ApiResponse<AsignacionesCubiculo>;
+			)) as ApiResponse<AsignacionesCubiculo[]>;
 			return response.data || null;
 		} catch (error) {
 			console.error(
