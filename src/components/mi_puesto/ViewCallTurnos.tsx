@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
 import { useMiPuestoAtencion } from "@/hooks/useMiPuestoAtencion";
 import Button from "../common/Button";
-import FinalizarModal from "./FinalizarModal";
-import type { FinalizarData } from "@/@types";
+// import FinalizarModal from "./FinalizarModal";
+import PausarModal from "./PausarModal";
+import PausaActivaModal from "./PausaActivaModal";
+// import type { ModalFinalizarData } from "@/@types";
 
 export default function ViewCallTurnos() {
 	const { user } = useAuthStore();
@@ -13,8 +15,9 @@ export default function ViewCallTurnos() {
 		estadoCubiculo,
 		tiempoTranscurrido,
 		llamarTurno,
+		pausaActual,
 		rellamarTurno,
-		finalizarTurno,
+		// finalizarTurno,
 		cancelarTurno,
 		pausarCubiculo,
 		reanudarCubiculo,
@@ -22,7 +25,9 @@ export default function ViewCallTurnos() {
 	} = useMiPuestoAtencion();
 
 	const [horaActual, setHoraActual] = useState("");
-	const [showFinalizarModal, setShowFinalizarModal] = useState(false);
+	// const [showFinalizarModal, setShowFinalizarModal] = useState(false);
+	const [showPausarModal, setShowPausarModal] = useState(false);
+	const [showPausaActivaModal, setShowPausaActivaModal] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Actualizar hora cada segundo
@@ -46,10 +51,15 @@ export default function ViewCallTurnos() {
 
 	// Cuando se carga el componente, cargar pausas actuales
 	useEffect(() => {
-		if (puestoActual?.id) {
-			cargarPausasActual(puestoActual.id);
+		if (estadoCubiculo === "Pausado") {
+			setShowPausaActivaModal(true);
 		}
-	}, [puestoActual?.id, cargarPausasActual]);
+		if (puestoActual?.id) {
+			if (estadoCubiculo !== "Disponible") {
+				cargarPausasActual(puestoActual.id);
+			}
+		}
+	}, [puestoActual?.id, cargarPausasActual, estadoCubiculo]);
 
 	// Formatear tiempo transcurrido en MM:SS
 	const formatearTiempo = (segundos: number): string => {
@@ -78,50 +88,67 @@ export default function ViewCallTurnos() {
 		await cancelarTurno("Turno cancelado por el usuario");
 	};
 
-	const handleFinalizarTurno = async (data: FinalizarData) => {
+	// const handleFinalizarTurno = async (data: FinalizarData) => {
+	// 	setIsSubmitting(true);
+	// 	const success = await finalizarTurno(data.observaciones);
+	// 	setIsSubmitting(false);
+	// 	return success;
+	// };
+
+	// const handleOpenFinalizarModal = () => {
+	// 	setShowFinalizarModal(true);
+	// };
+
+	// const handleCloseFinalizarModal = () => {
+	// 	setShowFinalizarModal(false);
+	// };
+
+	const handlePausarClick = () => {
+		if (estadoCubiculo === "Pausado") {
+			setShowPausaActivaModal(true);
+		} else {
+			setShowPausarModal(true);
+		}
+	};
+
+	const handlePausar = async (motivoId: number, descripcion: string) => {
 		setIsSubmitting(true);
-		const success = await finalizarTurno(data.observaciones);
+		const success = await pausarCubiculo(motivoId, descripcion);
+		setIsSubmitting(false);
+		if (success) {
+			setShowPausaActivaModal(true);
+		}
+		return success;
+	};
+
+	const handleReanudar = async () => {
+		setIsSubmitting(true);
+		const success = await reanudarCubiculo();
 		setIsSubmitting(false);
 		return success;
 	};
 
-	const handleOpenFinalizarModal = () => {
-		setShowFinalizarModal(true);
-	};
-
-	const handleCloseFinalizarModal = () => {
-		setShowFinalizarModal(false);
-	};
-
-	const handlePausarReanudar = async () => {
-		if (estadoCubiculo) {
-			await reanudarCubiculo();
-		} else {
-			await pausarCubiculo();
-		}
-	};
-
 	const getEstadoColor = () => {
 		switch (estadoCubiculo) {
-			case "disponible":
+			case "Disponible":
 				return {
 					ping: "bg-green-400",
 					dot: "bg-green-500",
 					text: "text-green-600 dark:text-green-400",
 				};
-			case "pausado":
+			case "Pausado":
 				return {
 					ping: "bg-yellow-400",
 					dot: "bg-yellow-500",
 					text: "text-yellow-600 dark:text-yellow-400",
 				};
-			case "ocupado":
+			case "Ocupado":
 				return {
 					ping: "bg-red-400",
 					dot: "bg-red-500",
 					text: "text-red-600 dark:text-red-400",
 				};
-			case "libre":
+			case "Finalizado":
 				return {
 					ping: "bg-blue-400",
 					dot: "bg-blue-500",
@@ -136,21 +163,6 @@ export default function ViewCallTurnos() {
 		}
 	};
 
-	const getEstadoTexto = () => {
-		switch (estadoCubiculo) {
-			case "disponible":
-				return "Disponible";
-			case "pausado":
-				return "Pausado";
-			case "ocupado":
-				return "Ocupado";
-			case "libre":
-				return "Libre";
-			default:
-				return "Desconocido";
-		}
-	};
-
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:h-full xl:min-h-[650px]">
 			<div className="lg:col-span-2 bg-white dark:bg-dark rounded-xl border border-black/10 dark:border-dark shadow-sm p-6 flex flex-col items-center justify-center relative">
@@ -159,12 +171,14 @@ export default function ViewCallTurnos() {
 					<div className="w-full max-w-lg mx-auto flex flex-col gap-6">
 						{/* boton de cerrar cubiculo */}
 						<div className="absolute top-6 right-6">
-							<Button variant="outline-secondary" className="flex gap-2">
-								<span className="material-symbols-rounded text-2xl">
-									exit_to_app
-								</span>
-								Cerrar Cubículo
-							</Button>
+							{estadoCubiculo === "Disponible" && (
+								<Button variant="outline-secondary" className="flex gap-2">
+									<span className="material-symbols-rounded text-2xl">
+										exit_to_app
+									</span>
+									Cerrar Cubículo
+								</Button>
+							)}
 						</div>
 						<div className="text-center mb-6">
 							<h3 className="text-3xl font-bold text-text-light dark:text-text-dark mb-4">
@@ -190,14 +204,14 @@ export default function ViewCallTurnos() {
 									<span
 										className={`font-bold ${getEstadoColor().text} text-xl`}
 									>
-										{getEstadoTexto()}
+										{estadoCubiculo || "Desconocido"}
 									</span>
 								</div>
 							</div>
 						</div>
 						<button
 							onClick={handleLlamarTurno}
-							disabled={estadoCubiculo !== "disponible"}
+							disabled={estadoCubiculo !== "Disponible"}
 							className="w-full bg-primary text-white text-xl font-bold py-6 px-8 rounded-xl shadow-lg hover:bg-primary/90 transition-all duration-300 flex items-center justify-center gap-3 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed! disabled:transform-none"
 						>
 							<span className="material-symbols-rounded text-3xl">
@@ -206,13 +220,13 @@ export default function ViewCallTurnos() {
 							Llamar Turno
 						</button>
 						<button
-							onClick={handlePausarReanudar}
+							onClick={handlePausarClick}
 							className="w-full bg-secondary/20 text-text-light dark:text-text-dark text-xl font-bold py-6 px-8 rounded-xl hover:bg-secondary/30 transition-all duration-300 flex items-center justify-center gap-3 transform hover:-translate-y-1"
 						>
 							<span className="material-symbols-rounded text-3xl">
-								{estadoCubiculo === "pausado" ? "play_circle" : "pause_circle"}
+								{estadoCubiculo === "Pausado" ? "play_circle" : "pause_circle"}
 							</span>
-							{estadoCubiculo === "pausado" ? "Reanudar" : "Pausar"}
+							{estadoCubiculo === "Pausado" ? "Reanudar" : "Pausar"}
 						</button>
 					</div>
 				)}
@@ -254,7 +268,7 @@ export default function ViewCallTurnos() {
 						</div>
 						<div className="flex pt-4 justify-center">
 							<button
-								onClick={handleOpenFinalizarModal}
+								// onClick={handleOpenFinalizarModal}
 								className="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-8 bg-primary text-gray-900 dark:text-white text-lg font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors gap-2"
 							>
 								<span className="material-symbols-rounded">check_circle</span>
@@ -338,7 +352,7 @@ export default function ViewCallTurnos() {
 			</div>
 
 			{/* Modal de Finalizar */}
-			{turnoActual && (
+			{/* {turnoActual && (
 				<FinalizarModal
 					isOpen={showFinalizarModal}
 					onClose={handleCloseFinalizarModal}
@@ -346,7 +360,24 @@ export default function ViewCallTurnos() {
 					turno={turnoActual}
 					loading={isSubmitting}
 				/>
-			)}
+			)} */}
+
+			{/* Modal de Pausar */}
+			<PausarModal
+				isOpen={showPausarModal}
+				onClose={() => setShowPausarModal(false)}
+				onSubmit={handlePausar}
+				loading={isSubmitting}
+			/>
+
+			{/* Modal de Pausa Activa */}
+			<PausaActivaModal
+				isOpen={showPausaActivaModal}
+				onClose={() => setShowPausaActivaModal(false)}
+				pausa={pausaActual}
+				onReanudar={handleReanudar}
+				loading={isSubmitting}
+			/>
 		</div>
 	);
 }

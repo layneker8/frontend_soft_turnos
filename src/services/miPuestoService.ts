@@ -1,7 +1,9 @@
 import type {
 	MiPuesto,
 	CubiculoDisponible,
-	pausasAtencion,
+	pausaAtencion,
+	MotivoPausa,
+	CrearPausaData,
 } from "@/@types/miPuesto";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
@@ -67,13 +69,13 @@ export class MiPuestoService {
 
 	// Pausar/reanudar el cubículo
 	async cambiarEstadoCubiculo(
-		cubiculo_id: number,
-		estado: "disponible" | "pausado"
-	): Promise<MiPuesto> {
+		id_atencion: number,
+		estado: "Disponible" | "Pausado" | "Ocupado"
+	): Promise<void> {
 		try {
 			const response = (await apiService.put(
-				`/api/mi-puesto/estado-cubiculo/${cubiculo_id}`,
-				{ estado }
+				`/api/mi-puesto/estado-cubiculo/${id_atencion}`,
+				{ nuevo_estado: estado }
 			)) as ApiResponse<MiPuesto>;
 
 			if ("success" in response && response.success === false) {
@@ -82,8 +84,6 @@ export class MiPuestoService {
 					"Error cambiando estado del cubículo"
 				);
 			}
-
-			return response.data;
 		} catch (error) {
 			console.error("Error cambiando estado del cubículo:", error);
 			throw error;
@@ -101,14 +101,64 @@ export class MiPuestoService {
 	}
 
 	// Obtener pausas actuales del puesto
-	async getPausasActual(id_atencion: number): Promise<pausasAtencion[]> {
+	async getPausaActual(id_atencion: number): Promise<pausaAtencion> {
 		try {
 			const response = (await apiService.get(
 				`/api/mi-puesto/pausas/${id_atencion}`
-			)) as ApiResponse<pausasAtencion[]>;
+			)) as ApiResponse<pausaAtencion>;
 			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo pausas actuales:", error);
+			throw error;
+		}
+	}
+
+	// Obtener motivos de pausa disponibles
+	async getMotivosPausa(): Promise<MotivoPausa[]> {
+		try {
+			const response = (await apiService.get(
+				"/api/motivos/pausa"
+			)) as ApiResponse<MotivoPausa[]>;
+			return response.data || [];
+		} catch (error) {
+			console.error("Error obteniendo motivos de pausa:", error);
+			throw error;
+		}
+	}
+
+	// Crear una nueva pausa
+	async crearPausa(data: CrearPausaData): Promise<pausaAtencion> {
+		try {
+			const response = (await apiService.post(
+				"/api/pausas/atencion",
+				data
+			)) as ApiResponse<pausaAtencion>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error creando pausa");
+			}
+
+			return response.data;
+		} catch (error) {
+			console.error("Error creando pausa:", error);
+			throw error;
+		}
+	}
+
+	// Finalizar pausa activa
+	async finalizarPausa(id_pausa: number): Promise<pausaAtencion> {
+		try {
+			const response = (await apiService.put(
+				`/api/pausas/atencion/${id_pausa}/finalizar`,
+				{}
+			)) as ApiResponse<pausaAtencion>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error finalizando pausa");
+			}
+			return response.data;
+		} catch (error) {
+			console.error("Error finalizando pausa:", error);
 			throw error;
 		}
 	}

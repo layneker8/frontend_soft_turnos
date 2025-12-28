@@ -8,21 +8,21 @@ export interface MiPuesto {
 	nombre_cubiculo: string;
 	sede_id: number;
 	nombre_sede: string;
-	estado: boolean;
+	available: boolean;
+	estado_cubiculo: "Ocupado" | "Disponible" | "Pausado" | "Finalizado";
 	fecha_ingreso: string;
 	fecha_salida?: string;
 }
 
-export interface pausasAtencion {
+export interface pausaAtencion {
 	id: number;
-	id_atencion: number;
+	atencion_id: number;
 	pausa_id: number;
 	nombre_pausa: string;
+	fecha_pausa: string;
 	hora_inicio: string;
 	hora_fin?: string;
 	observaciones?: string;
-	created_at: string;
-	updated_at: string;
 }
 
 export interface CubiculoDisponible {
@@ -30,4 +30,17 @@ export interface CubiculoDisponible {
 	nombre: string;
 	disponible: boolean;
 	ocupado_por?: string;
+}
+
+export interface MotivoPausa {
+	id_pausa: number;
+	nombre_pausa: string;
+	tiempo_pausa: number; // en minutos
+	tiempo_limite_pausa: number; // en minutos
+}
+
+export interface CrearPausaData {
+	atencion_id: number;
+	pausa_id: number;
+	observaciones?: string;
 }

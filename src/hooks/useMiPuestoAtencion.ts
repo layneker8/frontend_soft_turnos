@@ -12,13 +12,13 @@ export const useMiPuestoAtencion = () => {
 		turnoActual,
 		estadoCubiculo,
 		tiempoTranscurrido,
-		pausasActual,
+		pausaActual,
 		setPuestoActual,
 		setCubiculosDisponibles,
 		setTurnoActual,
 		setEstadoCubiculo,
 		setTiempoTranscurrido,
-		setPausasActual,
+		setPausaActual,
 	} = useMiPuestoStore();
 
 	const [loading, setLoading] = useState(false);
@@ -93,7 +93,7 @@ export const useMiPuestoAtencion = () => {
 		};
 	}, [turnoActual, setTiempoTranscurrido]);
 
-	// Cargar cubículos disponibles
+	// Cargar cubículos Disponibles
 	const cargarCubiculosDisponibles = useCallback(
 		async (usuario_id: number) => {
 			setLoading(true);
@@ -126,7 +126,7 @@ export const useMiPuestoAtencion = () => {
 					usuario_id
 				);
 				setPuestoActual(puesto);
-				setEstadoCubiculo("disponible");
+				setEstadoCubiculo("Disponible");
 				addToast({
 					type: "success",
 					title: "Puesto seleccionado",
@@ -152,10 +152,10 @@ export const useMiPuestoAtencion = () => {
 		async (id_atencion: number) => {
 			setLoading(true);
 			try {
-				const pausas = await miPuestoService.getPausasActual(id_atencion);
-				setPausasActual(pausas);
-				if (pausas.length > 0) {
-					setEstadoCubiculo("pausado");
+				const pausa = await miPuestoService.getPausaActual(id_atencion);
+				if (pausa) {
+					setPausaActual(pausa);
+					setEstadoCubiculo("Pausado");
 				}
 			} catch (error) {
 				console.error("Error cargando pausas actuales:", error);
@@ -163,7 +163,7 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[setPausasActual, setEstadoCubiculo]
+		[setPausaActual, setEstadoCubiculo]
 	);
 
 	// Cargar puesto actual
@@ -174,7 +174,7 @@ export const useMiPuestoAtencion = () => {
 				const puesto = await miPuestoService.getMiPuestoActual(usuario_id);
 				setPuestoActual(puesto);
 				if (puesto) {
-					setEstadoCubiculo("disponible");
+					setEstadoCubiculo("Disponible");
 				}
 			} catch (error) {
 				console.error("Error cargando puesto actual:", error);
@@ -194,7 +194,7 @@ export const useMiPuestoAtencion = () => {
 				const turno = await turnoService.llamarTurno(data);
 				setTurnoActual(turno);
 				setTiempoTranscurrido(0);
-				setEstadoCubiculo("ocupado");
+				setEstadoCubiculo("Ocupado");
 				addToast({
 					type: "success",
 					title: "Turno llamado",
@@ -206,7 +206,7 @@ export const useMiPuestoAtencion = () => {
 				addToast({
 					type: "error",
 					title: "Error",
-					message: message || "No hay turnos disponibles para llamar",
+					message: message || "No hay turnos Disponibles para llamar",
 				});
 				return false;
 			} finally {
@@ -292,7 +292,7 @@ export const useMiPuestoAtencion = () => {
 					observaciones,
 				});
 				setTurnoActual(null);
-				setEstadoCubiculo("disponible");
+				setEstadoCubiculo("Disponible");
 				setTiempoTranscurrido(0);
 				addToast({
 					type: "success",
@@ -336,7 +336,7 @@ export const useMiPuestoAtencion = () => {
 					observaciones,
 				});
 				setTurnoActual(null);
-				setEstadoCubiculo("disponible");
+				setEstadoCubiculo("Disponible");
 				setTiempoTranscurrido(0);
 				addToast({
 					type: "info",
@@ -367,47 +367,60 @@ export const useMiPuestoAtencion = () => {
 		]
 	);
 
-	// Pausar cubículo
-	const pausarCubiculo = useCallback(async (): Promise<boolean> => {
-		if (!puestoActual) return false;
+	// Pausar cubículo con motivo
+	const pausarCubiculo = useCallback(
+		async (motivoId: number, descripcion?: string): Promise<boolean> => {
+			if (!puestoActual) return false;
 
-		setLoading(true);
-		try {
-			await miPuestoService.cambiarEstadoCubiculo(
-				puestoActual.cubiculo_id,
-				"pausado"
-			);
-			setEstadoCubiculo("pausado");
-			addToast({
-				type: "info",
-				title: "Puesto pausado",
-				message: "Tu puesto ha sido pausado",
-			});
-			return true;
-		} catch (error) {
-			const { message } = parseBackendError(error);
-			addToast({
-				type: "error",
-				title: "Error",
-				message: message || "No se pudo pausar el puesto",
-			});
-			return false;
-		} finally {
-			setLoading(false);
-		}
-	}, [puestoActual, addToast, setEstadoCubiculo, parseBackendError]);
+			setLoading(true);
+			try {
+				const pausa = await miPuestoService.crearPausa({
+					atencion_id: puestoActual.id,
+					pausa_id: motivoId,
+					observaciones: descripcion,
+				});
+
+				await miPuestoService.cambiarEstadoCubiculo(puestoActual.id, "Pausado");
+
+				setPausaActual(pausa);
+				setEstadoCubiculo("Pausado");
+				addToast({
+					type: "info",
+					title: "Puesto Pausado",
+					message: "Tu puesto ha sido Pausado",
+				});
+				return true;
+			} catch (error) {
+				const { message } = parseBackendError(error);
+				addToast({
+					type: "error",
+					title: "Error",
+					message: message || "No se pudo pausar el puesto",
+				});
+				return false;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[
+			puestoActual,
+			addToast,
+			setEstadoCubiculo,
+			setPausaActual,
+			parseBackendError,
+		]
+	);
 
 	// Reanudar cubículo
 	const reanudarCubiculo = useCallback(async (): Promise<boolean> => {
-		if (!puestoActual) return false;
+		if (!puestoActual || !pausaActual) return false;
 
 		setLoading(true);
 		try {
-			await miPuestoService.cambiarEstadoCubiculo(
-				puestoActual.cubiculo_id,
-				"disponible"
-			);
-			setEstadoCubiculo("disponible");
+			await miPuestoService.finalizarPausa(pausaActual.id);
+
+			setPausaActual(null);
+			setEstadoCubiculo("Disponible");
 			addToast({
 				type: "success",
 				title: "Puesto reanudado",
@@ -425,7 +438,14 @@ export const useMiPuestoAtencion = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [puestoActual, addToast, setEstadoCubiculo, parseBackendError]);
+	}, [
+		puestoActual,
+		addToast,
+		setEstadoCubiculo,
+		setPausaActual,
+		pausaActual,
+		parseBackendError,
+	]);
 
 	// Liberar cubículo
 	const liberarCubiculo = useCallback(async (): Promise<boolean> => {
@@ -436,8 +456,8 @@ export const useMiPuestoAtencion = () => {
 			await miPuestoService.liberarCubiculo(puestoActual.cubiculo_id);
 			setPuestoActual(null);
 			setTurnoActual(null);
-			setPausasActual([]);
-			setEstadoCubiculo("libre");
+			setPausaActual(null);
+			setEstadoCubiculo("Finalizado");
 			addToast({
 				type: "info",
 				title: "Puesto liberado",
@@ -461,14 +481,14 @@ export const useMiPuestoAtencion = () => {
 		parseBackendError,
 		setPuestoActual,
 		setTurnoActual,
-		setPausasActual,
+		setPausaActual,
 		setEstadoCubiculo,
 	]);
 
 	return {
 		// Estado
 		puestoActual,
-		pausasActual,
+		pausaActual,
 		cubiculosDisponibles,
 		turnoActual,
 		loading,

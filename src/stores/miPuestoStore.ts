@@ -4,7 +4,7 @@ import type {
 	MiPuesto,
 	// TurnoLlamado,
 	AsignacionesCubiculo,
-	pausasAtencion,
+	pausaAtencion,
 	TurnoLlamado,
 } from "@/@types";
 import env from "@/config/env";
@@ -13,19 +13,19 @@ interface MiPuestoState {
 	puestoActual: MiPuesto | null;
 	cubiculosDisponibles: AsignacionesCubiculo[];
 	turnoActual: TurnoLlamado | null;
-	estadoCubiculo: "ocupado" | "disponible" | "pausado" | "libre";
+	estadoCubiculo: "Ocupado" | "Disponible" | "Pausado" | "Finalizado";
 	tiempoTranscurrido: number;
-	pausasActual: pausasAtencion[];
+	pausaActual: pausaAtencion | null;
 
 	// Actions
 	setPuestoActual: (puesto: MiPuesto | null) => void;
 	setCubiculosDisponibles: (cubiculos: AsignacionesCubiculo[]) => void;
 	setTurnoActual: (turno: TurnoLlamado | null) => void;
 	setEstadoCubiculo: (
-		estado: "ocupado" | "disponible" | "pausado" | "libre"
+		estado: "Ocupado" | "Disponible" | "Pausado" | "Finalizado"
 	) => void;
 	setTiempoTranscurrido: (tiempo: number) => void;
-	setPausasActual: (pausas: pausasAtencion[]) => void;
+	setPausaActual: (pausas: pausaAtencion | null) => void;
 	resetTiempo: () => void;
 	reset: () => void;
 }
@@ -37,9 +37,9 @@ export const useMiPuestoStore = create<MiPuestoState>()(
 				puestoActual: null,
 				cubiculosDisponibles: [],
 				turnoActual: null,
-				estadoCubiculo: "disponible",
+				estadoCubiculo: "Disponible",
 				tiempoTranscurrido: 0,
-				pausasActual: [],
+				pausaActual: null,
 
 				setPuestoActual: (puesto) =>
 					set({ puestoActual: puesto }, false, "setPuestoActual"),
@@ -55,28 +55,28 @@ export const useMiPuestoStore = create<MiPuestoState>()(
 					set({ estadoCubiculo: estado }, false, "setEstadoCubiculo"),
 				setTiempoTranscurrido: (tiempo) =>
 					set({ tiempoTranscurrido: tiempo }, false, "setTiempoTranscurrido"),
-				setPausasActual: (pausas) =>
-					set({ pausasActual: pausas }, false, "setPausasActual"),
+				setPausaActual: (pausas) =>
+					set({ pausaActual: pausas }, false, "setPausaActual"),
 				resetTiempo: () => set({ tiempoTranscurrido: 0 }, false, "resetTiempo"),
 				reset: () =>
 					set({
 						puestoActual: null,
 						cubiculosDisponibles: [],
 						// turnoActual: null,
-						estadoCubiculo: "disponible",
+						estadoCubiculo: "Disponible",
 						tiempoTranscurrido: 0,
-						pausasActual: [],
+						pausaActual: null,
 					}),
 			}),
 			{
 				name: "mi-puesto-store",
 				partialize(state) {
 					return {
-						puestoActual1: state.puestoActual,
+						puestoActual: state.puestoActual,
 						turnoActual: state.turnoActual,
 						estadoCubiculo: state.estadoCubiculo,
 						tiempoTranscurrido: state.tiempoTranscurrido,
-						pausasActual: state.pausasActual,
+						pausaActual: state.pausaActual,
 					};
 				},
 			}
