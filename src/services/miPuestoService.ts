@@ -4,6 +4,7 @@ import type {
 	pausaAtencion,
 	MotivoPausa,
 	CrearPausaData,
+	MotivoCancelacion,
 } from "@/@types/miPuesto";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
@@ -122,6 +123,19 @@ export class MiPuestoService {
 			return response.data || [];
 		} catch (error) {
 			console.error("Error obteniendo motivos de pausa:", error);
+			throw error;
+		}
+	}
+
+	// obtener motivos de cancelacion
+	async getMotivosCancelacion(): Promise<MotivoCancelacion[]> {
+		try {
+			const response = (await apiService.get(
+				"/api/motivos/cancelacion"
+			)) as ApiResponse<MotivoCancelacion[]>;
+			return response.data || [];
+		} catch (error) {
+			console.error("Error obteniendo motivos de cancelación:", error);
 			throw error;
 		}
 	}

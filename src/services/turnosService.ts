@@ -1,5 +1,6 @@
 import type {
 	CambiarEstadoTurnoData,
+	CancelarTurno,
 	CreateTurnoData,
 	FinalizarData,
 	LlamarTurnoData,
@@ -33,11 +34,12 @@ export class TurnoService {
 
 	// Cambiar estado del turno (atendiendo, finalizado, cancelado)
 	async cambiarEstadoTurno(
+		id_turno: number,
 		data: CambiarEstadoTurnoData
 	): Promise<TurnoLlamado> {
 		try {
-			const response = (await apiService.put(
-				"/api/turnos/estado-turno",
+			const response = (await apiService.patch(
+				`/api/turnos/${id_turno}/estado`,
 				data
 			)) as ApiResponse<TurnoLlamado>;
 
@@ -68,6 +70,26 @@ export class TurnoService {
 			return response.data;
 		} catch (error) {
 			console.error("Error finalizando el turno:", error);
+			throw error;
+		}
+	}
+
+	async cancelarTurno(data: CancelarTurno): Promise<boolean> {
+		try {
+			const response = (await apiService.post(
+				`/api/turnos/${data.turno_id}/cancelar`,
+				{
+					motivo_id: data.motivo_id,
+					observaciones: data.observaciones,
+				}
+			)) as ApiResponse<null>;
+
+			if ("success" in response && response.success === false) {
+				throw buildResponseError(response, "Error cancelando turno");
+			}
+			return true;
+		} catch (error) {
+			console.error("Error cancelando turno:", error);
 			throw error;
 		}
 	}

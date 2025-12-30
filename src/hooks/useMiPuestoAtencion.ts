@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { LlamarTurnoData } from "@/@types";
+import type { CancelarTurno, LlamarTurnoData } from "@/@types";
 import { miPuestoService } from "@/services/miPuestoService";
 import { useMiPuestoStore, useToastStore } from "@/stores";
 import { cubiculoService } from "@/services/cubiculoService";
@@ -256,14 +256,13 @@ export const useMiPuestoAtencion = () => {
 
 		setLoading(true);
 		try {
-			const turno = await turnoService.cambiarEstadoTurno({
-				turno_id: turnoActual.id.toString(),
+			const turno = await turnoService.cambiarEstadoTurno(turnoActual.id, {
 				estado: "atendiendo",
 			});
 			setTurnoActual(turno);
 			addToast({
 				type: "success",
-				title: "Atendiendo turno",
+				title: "Turno en atención",
 				message: `Atendiendo turno ${turno.codigo_turno}`,
 			});
 			return true;
@@ -325,19 +324,16 @@ export const useMiPuestoAtencion = () => {
 
 	// Cancelar turno
 	const cancelarTurno = useCallback(
-		async (observaciones?: string): Promise<boolean> => {
+		async (data: CancelarTurno): Promise<boolean> => {
 			if (!turnoActual || !puestoActual) return false;
 
 			setLoading(true);
 			try {
-				await turnoService.cambiarEstadoTurno({
-					turno_id: turnoActual.id.toString(),
-					estado: "cancelado",
-					observaciones,
-				});
+				await turnoService.cancelarTurno(data);
 				setTurnoActual(null);
 				setEstadoCubiculo("Disponible");
 				setTiempoTranscurrido(0);
+
 				addToast({
 					type: "info",
 					title: "Turno cancelado",

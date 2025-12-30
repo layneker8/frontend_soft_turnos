@@ -56,13 +56,17 @@ export interface TurnoLlamado {
 }
 
 export interface CambiarEstadoTurnoData {
-	turno_id: string;
-	estado: "atendiendo" | "finalizado" | "cancelado";
-	observaciones?: string;
+	estado: "esperando" | "llamado" | "atendiendo" | "finalizado" | "cancelado";
 }
 
 export interface FinalizarData {
 	turno_id: string;
+	observaciones?: string;
+}
+
+export interface CancelarTurno {
+	turno_id: number;
+	motivo_id: number;
 	observaciones?: string;
 }
 

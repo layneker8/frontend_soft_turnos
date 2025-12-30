@@ -39,6 +39,11 @@ export interface MotivoPausa {
 	tiempo_limite_pausa: number; // en minutos
 }
 
+export interface MotivoCancelacion {
+	motivo_id: number;
+	motivo: string;
+}
+
 export interface CrearPausaData {
 	atencion_id: number;
 	pausa_id: number;
