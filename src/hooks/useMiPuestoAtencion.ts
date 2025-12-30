@@ -77,9 +77,15 @@ export const useMiPuestoAtencion = () => {
 	useEffect(() => {
 		let interval: NodeJS.Timeout;
 
-		if (turnoActual && turnoActual.estado === "llamado") {
+		if (
+			turnoActual &&
+			(turnoActual.estado === "llamado" || turnoActual.estado === "atendiendo")
+		) {
 			interval = setInterval(() => {
-				const inicio = new Date(turnoActual.fecha_llamado).getTime();
+				const inicio =
+					turnoActual.estado === "llamado"
+						? new Date(turnoActual.fecha_llamado).getTime()
+						: new Date(turnoActual.fecha_atencion!).getTime();
 				const ahora = new Date().getTime();
 				const segundos = Math.floor((ahora - inicio) / 1000);
 				setTiempoTranscurrido(segundos);
@@ -189,9 +195,11 @@ export const useMiPuestoAtencion = () => {
 	// Llamar turno
 	const llamarTurno = useCallback(
 		async (data: LlamarTurnoData): Promise<boolean> => {
+			if (!puestoActual) return false;
 			setLoading(true);
 			try {
 				const turno = await turnoService.llamarTurno(data);
+				await miPuestoService.cambiarEstadoCubiculo(puestoActual.id, "Ocupado");
 				setTurnoActual(turno);
 				setTiempoTranscurrido(0);
 				setEstadoCubiculo("Ocupado");
@@ -219,6 +227,7 @@ export const useMiPuestoAtencion = () => {
 			setEstadoCubiculo,
 			setTiempoTranscurrido,
 			parseBackendError,
+			puestoActual,
 		]
 	);
 
@@ -259,7 +268,9 @@ export const useMiPuestoAtencion = () => {
 			const turno = await turnoService.cambiarEstadoTurno(turnoActual.id, {
 				estado: "atendiendo",
 			});
+			await miPuestoService.cambiarEstadoCubiculo(puestoActual.id, "Ocupado");
 			setTurnoActual(turno);
+			setTiempoTranscurrido(0);
 			addToast({
 				type: "success",
 				title: "Turno en atención",
@@ -277,7 +288,14 @@ export const useMiPuestoAtencion = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [turnoActual, puestoActual, addToast, setTurnoActual, parseBackendError]);
+	}, [
+		turnoActual,
+		puestoActual,
+		addToast,
+		setTurnoActual,
+		parseBackendError,
+		setTiempoTranscurrido,
+	]);
 
 	// Finalizar turno
 	const finalizarTurno = useCallback(
@@ -290,6 +308,10 @@ export const useMiPuestoAtencion = () => {
 					turno_id: turnoActual.id.toString(),
 					observaciones,
 				});
+				await miPuestoService.cambiarEstadoCubiculo(
+					puestoActual.id,
+					"Disponible"
+				);
 				setTurnoActual(null);
 				setEstadoCubiculo("Disponible");
 				setTiempoTranscurrido(0);
@@ -449,7 +471,7 @@ export const useMiPuestoAtencion = () => {
 
 		setLoading(true);
 		try {
-			await miPuestoService.liberarCubiculo(puestoActual.cubiculo_id);
+			await miPuestoService.liberarCubiculo(puestoActual.id);
 			setPuestoActual(null);
 			setTurnoActual(null);
 			setPausaActual(null);

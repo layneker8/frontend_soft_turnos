@@ -186,9 +186,9 @@ const CancelarModal: React.FC<CancelarModalProps> = ({
 				) : (
 					<>
 						<span className="material-symbols-rounded text-sm mr-2">
-							cancel
+							check_circle
 						</span>
-						Cancelar Turno
+						Confirmar Cancelación
 					</>
 				)}
 			</button>

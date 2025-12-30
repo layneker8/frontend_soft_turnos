@@ -24,6 +24,7 @@ export default function ViewCallTurnos() {
 		reanudarCubiculo,
 		cargarPausasActual,
 		atenderTurno,
+		liberarCubiculo,
 	} = useMiPuestoAtencion();
 
 	const [horaActual, setHoraActual] = useState("");
@@ -145,6 +146,13 @@ export default function ViewCallTurnos() {
 		return success;
 	};
 
+	const handleLiberarPuesto = async () => {
+		if (!puestoActual) return;
+		setIsSubmitting(true);
+		await liberarCubiculo();
+		setIsSubmitting(false);
+	};
+
 	const getEstadoColor = () => {
 		switch (estadoCubiculo) {
 			case "Disponible":
@@ -180,6 +188,20 @@ export default function ViewCallTurnos() {
 		}
 	};
 
+	const getAnimation = () => {
+		if (turnoActual) {
+			switch (turnoActual.estado) {
+				case "llamado":
+					return "animate__headShake";
+				case "atendiendo":
+					return "animate__flash";
+				default:
+					return "";
+			}
+		}
+		return "";
+	};
+
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:h-full xl:min-h-162.5">
 			<div className="lg:col-span-2 bg-white dark:bg-dark rounded-xl border border-black/10 dark:border-dark shadow-sm p-6 flex flex-col items-center justify-center relative">
@@ -189,7 +211,11 @@ export default function ViewCallTurnos() {
 						{/* boton de cerrar cubiculo */}
 						<div className="absolute top-6 right-6">
 							{estadoCubiculo === "Disponible" && (
-								<Button variant="outline-secondary" className="flex gap-2">
+								<Button
+									onClick={handleLiberarPuesto}
+									variant="outline-secondary"
+									className="flex gap-2"
+								>
 									<span className="material-symbols-rounded text-2xl">
 										exit_to_app
 									</span>
@@ -231,7 +257,7 @@ export default function ViewCallTurnos() {
 							disabled={estadoCubiculo !== "Disponible"}
 							className="w-full bg-primary text-white text-xl font-bold py-6 px-8 rounded-xl shadow-lg hover:bg-primary/90 transition-all duration-300 flex items-center justify-center gap-3 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed! disabled:transform-none"
 						>
-							<span className="material-symbols-rounded text-3xl">
+							<span className="material-symbols-rounded text-3xl!">
 								campaign
 							</span>
 							Llamar Turno
@@ -240,7 +266,7 @@ export default function ViewCallTurnos() {
 							onClick={handlePausarClick}
 							className="w-full bg-secondary/20 text-text-light dark:text-text-dark text-xl font-bold py-6 px-8 rounded-xl hover:bg-secondary/30 transition-all duration-300 flex items-center justify-center gap-3 transform hover:-translate-y-1"
 						>
-							<span className="material-symbols-rounded text-3xl">
+							<span className="material-symbols-rounded text-3xl!">
 								{estadoCubiculo === "Pausado" ? "play_circle" : "pause_circle"}
 							</span>
 							{estadoCubiculo === "Pausado" ? "Reanudar" : "Pausar"}
@@ -250,7 +276,9 @@ export default function ViewCallTurnos() {
 
 				{/* Vista después de haber llamado al turno o atendiendo */}
 				{turnoActual && (
-					<div className="w-full max-w-md text-center">
+					<div
+						className={`w-full max-w-md text-center animate__animated ${getAnimation()}`}
+					>
 						<h2 className="text-gray-600 dark:text-gray-300 tracking-light text-2xl font-bold leading-tight">
 							{turnoActual.estado === "llamado"
 								? "Llamando al turno:"
@@ -269,15 +297,25 @@ export default function ViewCallTurnos() {
 						</div>
 						<div className="flex flex-col sm:flex-row gap-4 py-8 w-full">
 							<button
-								onClick={handleRellamarTurno}
-								className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-base font-bold leading-normal hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors gap-2"
+								onClick={
+									turnoActual.estado === "llamado"
+										? handleRellamarTurno
+										: undefined
+								}
+								disabled={turnoActual.estado !== "llamado"}
+								className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-base font-bold leading-normal hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors gap-2 disabled:opacity-50 disabled:cursor-not-allowed!"
 							>
 								<span className="material-symbols-rounded">replay</span>
 								<span className="truncate">Llamar de Nuevo</span>
 							</button>
 							<button
-								onClick={handleOpenModalCancelar}
-								className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-transparent text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 text-base font-bold leading-normal hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors gap-2"
+								onClick={
+									turnoActual.estado === "llamado"
+										? handleOpenModalCancelar
+										: undefined
+								}
+								disabled={turnoActual.estado === "atendiendo"}
+								className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-transparent text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 text-base font-bold leading-normal hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors gap-2 disabled:opacity-50 disabled:cursor-not-allowed!"
 							>
 								<span className="material-symbols-rounded">cancel</span>
 								<span className="truncate">Cancelar</span>
