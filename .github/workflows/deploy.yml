@@ -9,6 +9,7 @@ jobs:
   deploy:
     name: Deploy a VPS
     runs-on: ubuntu-latest
+    environment: iturno
 
     steps:
       - name: Validar que los secrets existen
