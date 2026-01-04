@@ -9,7 +9,7 @@ import Home from "@/components/dashboard/Home";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ToastContainer from "@/components/common/ToastContainer";
 import ViewCrearTurnos from "@/components/turnos/ViewAsignacionTurnos";
-import ViewTurnos from "./components/turnos/ViewTurnos";
+import ViewTurnos from "@/components/turnos/ViewTurnos";
 
 function App() {
 	return (
