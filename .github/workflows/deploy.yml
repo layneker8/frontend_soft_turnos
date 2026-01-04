@@ -1,0 +1,56 @@
+name: Deploy a VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  deploy:
+    name: Deploy a VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy mediante SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            # Ir al directorio del proyecto
+            cd ${{ secrets.VPS_PROJECT_PATH }}
+
+            # Actualizar código desde GitHub
+            echo "📥 Obteniendo últimos cambios..."
+            git pull origin main
+
+            # Instalar/actualizar dependencias
+            echo "📦 Instalando dependencias..."
+            npm install
+
+            # Build de producción
+            echo "🏗️ Compilando proyecto..."
+            npm run build
+
+            # Reiniciar servidor web (ajusta según tu configuración)
+            # Opción 1: Nginx
+            echo "🔄 Reiniciando servidor..."
+            sudo systemctl reload nginx
+
+            # Opción 2: PM2 (si usas Node.js server)
+            # pm2 restart soft-turnos-frontend
+
+            # Opción 3: Docker (si usas contenedor)
+            # docker-compose up -d --build
+
+            echo "✅ Deploy completado!"
+
+      - name: Notificación de deploy exitoso
+        if: success()
+        run: echo "✅ Aplicación desplegada exitosamente en VPS!"
+
+      - name: Notificación de error
+        if: failure()
+        run: echo "❌ Error durante el deploy. Revisa los logs."

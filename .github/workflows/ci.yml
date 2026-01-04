@@ -1,0 +1,33 @@
+name: CI - Validación de Código
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Validar código antes del deploy
+  validate:
+    name: Validar y Build de Prueba
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar ESLint
+        run: npm run lint
+
+      - name: Verificar tipos TypeScript
+        run: npx tsc --noEmit
+
+      - name: Build de prueba
+        run: npm run build
