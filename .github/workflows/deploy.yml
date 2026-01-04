@@ -36,8 +36,8 @@ jobs:
 
             # Reiniciar servidor web (ajusta según tu configuración)
             # Opción 1: Nginx
-            echo "🔄 Reiniciando servidor..."
-            sudo systemctl reload nginx
+            #echo "🔄 Reiniciando servidor..."
+            #sudo systemctl reload nginx
 
             # Opción 2: PM2 (si usas Node.js server)
             # pm2 restart soft-turnos-frontend
