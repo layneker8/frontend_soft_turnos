@@ -9,7 +9,6 @@ import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import Footer from "./Footer";
 import DashboardMain from "./DashboardMain";
-import ViewTurnos from "../turnos/ViewTurnos";
 import NotFound404 from "../common/NotFound404";
 import ViewUsers from "../users/viewUsers";
 import ViewCubiculo from "../cubiculos/ViewCubiculo";
@@ -73,8 +72,6 @@ const Home: React.FC = () => {
 					<Routes>
 						{/* Ruta por defecto del dashboard */}
 						<Route index element={<DashboardMain />} />
-						{/* Rutas específicas */}
-						<Route path="turnos" element={<ViewTurnos />} />
 
 						{/* Puedes agregar más rutas aquí */}
 						<Route

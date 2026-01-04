@@ -3,6 +3,7 @@
 /* Tipos para configuración de entorno */
 export interface EnvConfig {
 	NAME_APP: string;
+	PUBLIC_URL: string;
 	API_URL: string;
 	SOCKET_URL: string;
 	AUTH_TOKEN?: string;

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppStore } from "@/stores/appStore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ALL_PERMISSIONS } from "@/constants/permissions";
+import env from "@/config/env";
 
 // Definir la estructura de elementos del sidebar
 interface SidebarItem {
@@ -244,13 +245,14 @@ const Sidebar: React.FC = () => {
                 `}
 			>
 				<div className="mb-3 h-[60px] w-auto flex items-center justify-between md:justify-center">
-					<h1
-						className={`text-xl font-bold text-slate-900 dark:text-white px-2 transition-opacity duration-300 ${
-							sidebarOpen ? "opacity-100" : "md:opacity-0 md:hidden"
-						}`}
-					>
-						Iturno
-					</h1>
+					{/* imagen de iturno */}
+					<img
+						src={`${env.PUBLIC_URL}/images/${
+							sidebarOpen ? "iturno-logo" : "iturno-logo-small"
+						}.png`}
+						alt="iTurno Logo"
+						className={`h-10 transition-opacity duration-300 opacity-100`}
+					/>
 					{/* Botón cerrar solo en móvil */}
 					<button
 						className="md:hidden p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800"

@@ -73,7 +73,7 @@ export const useMiPuestoStore = create<MiPuestoState>()(
 				partialize(state) {
 					return {
 						puestoActual: state.puestoActual,
-						turnoActual: state.turnoActual,
+						// turnoActual: state.turnoActual,
 						estadoCubiculo: state.estadoCubiculo,
 						tiempoTranscurrido: state.tiempoTranscurrido,
 						pausaActual: state.pausaActual,

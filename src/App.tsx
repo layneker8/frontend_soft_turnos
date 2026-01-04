@@ -9,12 +9,14 @@ import Home from "@/components/dashboard/Home";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ToastContainer from "@/components/common/ToastContainer";
 import ViewCrearTurnos from "@/components/turnos/ViewAsignacionTurnos";
+import ViewTurnos from "./components/turnos/ViewTurnos";
 
 function App() {
 	return (
 		<Router>
 			<Routes>
 				<Route path="/login" element={<Login />} />
+				<Route path="/turnos-view" element={<ViewTurnos />} />
 				<Route
 					path="/create-turnos"
 					element={

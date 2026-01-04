@@ -70,9 +70,34 @@ export interface CancelarTurno {
 	observaciones?: string;
 }
 
+export interface UseTurnosRealtimeOptions {
+	sedeId: number | null;
+	autoConnect?: boolean;
+}
+
+export interface TurnoDisplayData {
+	id: string | number;
+	codigo_turno: string;
+	cubiculo_id: number;
+	nombre_cubiculo?: string;
+	estado: "esperando" | "llamado" | "atendiendo" | "finalizado" | "cancelado";
+}
+
 // Tipos para eventos de Socket.IO
-export interface SocketEvents {
-	"turno:actualizado": (turno: Turno) => void;
-	"estado:inicial": (data: { turnos: Turno[] }) => void;
-	"solicitar:actualizacion": () => void;
+// Solo eventos personalizados, no incluir eventos reservados (connect, disconnect, etc.)
+export interface TurnoSocketEvents {
+	"estado:inicial": (data: TurnoDisplayData[]) => void;
+	"turno:creado": (turno: TurnoDisplayData) => void;
+	"turno:actualizado": (turno: TurnoDisplayData) => void;
+	"turno:llamado": (turno: TurnoDisplayData) => void;
+	"turno:rellamar": (turno: TurnoDisplayData) => void;
+	"turno:atendiendo": (turno: TurnoDisplayData) => void;
+	"turno:finalizado": (turno: TurnoDisplayData) => void;
+	"turno:cancelado": (turno: TurnoDisplayData) => void;
+}
+
+// Eventos que el cliente puede emitir al servidor
+export interface ClientToServerEvents {
+	"join:sede": (sedeId: number) => void;
+	"leave:sede": (sedeId: number) => void;
 }

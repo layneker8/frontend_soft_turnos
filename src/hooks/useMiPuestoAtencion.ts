@@ -4,6 +4,8 @@ import { miPuestoService } from "@/services/miPuestoService";
 import { useMiPuestoStore, useToastStore } from "@/stores";
 import { cubiculoService } from "@/services/cubiculoService";
 import { turnoService } from "@/services/turnosService";
+import { TURNO_PERMISSIONS } from "@/constants/permissions";
+import { usePermissions } from "./usePermissions";
 
 export const useMiPuestoAtencion = () => {
 	const {
@@ -24,6 +26,7 @@ export const useMiPuestoAtencion = () => {
 	const [loading, setLoading] = useState(false);
 
 	const { addToast } = useToastStore();
+	const { hasAnyPermission } = usePermissions();
 
 	// Helpers para extraer errores del backend sin usar any
 	const isRecord = (val: unknown): val is Record<string, unknown> =>
@@ -72,6 +75,12 @@ export const useMiPuestoAtencion = () => {
 		},
 		[]
 	);
+
+	// const canRead = hasAnyPermission([TURNO_PERMISSIONS.READ]);
+	const canUpdate = hasAnyPermission([TURNO_PERMISSIONS.UPDATE]);
+	const canFinish = hasAnyPermission([TURNO_PERMISSIONS.FINISH]);
+	const canCall = hasAnyPermission([TURNO_PERMISSIONS.CALL]);
+	const canCancel = hasAnyPermission([TURNO_PERMISSIONS.CANCEL]);
 
 	// Timer para calcular tiempo transcurrido
 	useEffect(() => {
@@ -196,6 +205,14 @@ export const useMiPuestoAtencion = () => {
 	const llamarTurno = useCallback(
 		async (data: LlamarTurnoData): Promise<boolean> => {
 			if (!puestoActual) return false;
+			if (!canCall) {
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No tienes permisos para llamar turnos.",
+				});
+				return false;
+			}
 			setLoading(true);
 			try {
 				const turno = await turnoService.llamarTurno(data);
@@ -222,6 +239,7 @@ export const useMiPuestoAtencion = () => {
 			}
 		},
 		[
+			canCall,
 			addToast,
 			setTurnoActual,
 			setEstadoCubiculo,
@@ -234,6 +252,14 @@ export const useMiPuestoAtencion = () => {
 	// Rellamar turno
 	const rellamarTurno = useCallback(
 		async (turno_id: string): Promise<boolean> => {
+			if (!canCall) {
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No tienes permisos para llamar turnos.",
+				});
+				return false;
+			}
 			setLoading(true);
 			try {
 				const turno = await turnoService.rellamarTurno(turno_id);
@@ -256,12 +282,20 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[addToast, setTurnoActual, parseBackendError]
+		[canCall, addToast, setTurnoActual, parseBackendError]
 	);
 
 	// Atender turno
 	const atenderTurno = useCallback(async (): Promise<boolean> => {
 		if (!turnoActual || !puestoActual) return false;
+		if (!canUpdate) {
+			addToast({
+				type: "error",
+				title: "Error",
+				message: "No tienes permisos para atender turnos.",
+			});
+			return false;
+		}
 
 		setLoading(true);
 		try {
@@ -289,6 +323,7 @@ export const useMiPuestoAtencion = () => {
 			setLoading(false);
 		}
 	}, [
+		canUpdate,
 		turnoActual,
 		puestoActual,
 		addToast,
@@ -301,6 +336,14 @@ export const useMiPuestoAtencion = () => {
 	const finalizarTurno = useCallback(
 		async (observaciones?: string): Promise<boolean> => {
 			if (!turnoActual || !puestoActual) return false;
+			if (!canFinish) {
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No tienes permisos para finalizar turnos.",
+				});
+				return false;
+			}
 
 			setLoading(true);
 			try {
@@ -334,6 +377,7 @@ export const useMiPuestoAtencion = () => {
 			}
 		},
 		[
+			canFinish,
 			turnoActual,
 			puestoActual,
 			addToast,
@@ -348,6 +392,14 @@ export const useMiPuestoAtencion = () => {
 	const cancelarTurno = useCallback(
 		async (data: CancelarTurno): Promise<boolean> => {
 			if (!turnoActual || !puestoActual) return false;
+			if (!canCancel) {
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No tienes permisos para cancelar turnos.",
+				});
+				return false;
+			}
 
 			setLoading(true);
 			try {
@@ -375,6 +427,7 @@ export const useMiPuestoAtencion = () => {
 			}
 		},
 		[
+			canCancel,
 			turnoActual,
 			puestoActual,
 			addToast,

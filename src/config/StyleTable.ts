@@ -1,18 +1,18 @@
-const colorprimary = "#ff961d";
-const colorprimary50 = "#fff7ed";
+// const colorprimary = "#ff961d";
+// const colorprimary50 = "#fff7ed";
 const colorprimary100 = "#ffedd5";
 const colorprimary500 = "#ff961d";
-const colorprimary600 = "#ea580c";
-const colorprimary700 = "#c2410c";
-const colorsecondary = "#95969d";
+// const colorprimary600 = "#ea580c";
+// const colorprimary700 = "#c2410c";
+// const colorsecondary = "#95969d";
 const colorsecondary50 = "#f8fafc";
-const colorsecondary100 = "#f1f5f9";
+// const colorsecondary100 = "#f1f5f9";
 const colorsecondary500 = "#95969d";
-const colorsecondary600 = "#64748b";
+// const colorsecondary600 = "#64748b";
 const colorsecondary700 = "#475569";
 const colorbackgroundlight = "#f8f7f5";
-const colorbackgrounddark = "#231a0f";
-const colorbackgrounddefault = "#f6f6f0";
+// const colorbackgrounddark = "#231a0f";
+// const colorbackgrounddefault = "#f6f6f0";
 
 const tailwindTheme = {
 	header: {
