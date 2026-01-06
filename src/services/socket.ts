@@ -10,6 +10,7 @@ class SocketService {
 	private socket: TypedSocket | null = null;
 	private connectionPromise: Promise<TypedSocket> | null = null;
 	private currentSedeId: number | null = null;
+	private registeredListeners: Map<string, () => void> = new Map();
 
 	/**
 	 * Conecta al servidor de Socket.IO
@@ -97,6 +98,7 @@ class SocketService {
 			this.socket = null;
 			this.connectionPromise = null;
 			this.currentSedeId = null;
+			this.registeredListeners.clear();
 		}
 	}
 
@@ -140,6 +142,7 @@ class SocketService {
 
 	/**
 	 * Escucha eventos del socket (reservados y personalizados)
+	 * Previene listeners duplicados
 	 */
 	on(event: "connect", callback: () => void): void;
 	on(event: "disconnect", callback: (reason: string) => void): void;
@@ -150,18 +153,32 @@ class SocketService {
 	): void;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	on(event: string, callback: (...args: any[]) => void): void {
+		// Evitar registrar el mismo listener múltiples veces
+		const key = `${event}_${callback.toString().substring(0, 50)}`;
+		if (this.registeredListeners.has(key)) {
+			console.warn(`⚠️ Listener para '${event}' ya registrado, omitiendo...`);
+			return;
+		}
+
+		this.registeredListeners.set(key, callback);
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.socket?.on(event as any, callback as any);
 	}
 
 	/**
-	 * Deja de escuchar eventos
+	 * Deja de escuchar eventos y limpia el tracking
 	 */
 	off(event: "connect"): void;
 	off(event: "disconnect"): void;
 	off(event: "connect_error"): void;
 	off<K extends keyof TurnoSocketEvents>(event: K): void;
 	off(event: string): void {
+		// Remover del tracking todos los listeners de este evento
+		for (const key of this.registeredListeners.keys()) {
+			if (key.startsWith(`${event}_`)) {
+				this.registeredListeners.delete(key);
+			}
+		}
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.socket?.off(event as any);
 	}

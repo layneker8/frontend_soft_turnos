@@ -14,7 +14,6 @@ export const useTurnosRealtime = ({
 	const [isConnected, setIsConnected] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const previousSedeId = useRef<number | null>(null);
-	// const audioContextRef = useRef<AudioContext | null>(null);
 
 	/**
 	 * Filtra turnos por estado
@@ -35,11 +34,11 @@ export const useTurnosRealtime = ({
 
 	/**
 	 * Reproducir llamada de turno (optimizado para displays sin interacción)
+	 * 👇 Usar useRef para evitar recreación en cada render
 	 */
-	const playTurnoCallSound = useCallback(async (turno: TurnoDisplayData) => {
+	const playTurnoCallSoundRef = useRef((turno: TurnoDisplayData) => {
 		console.log("🔊 Reproduciendo sonido para turno:", turno.codigo_turno);
 
-		// 1. Síntesis de voz (más permisiva en navegadores)
 		try {
 			const utterance = new SpeechSynthesisUtterance(
 				`Turno ${turno.codigo_turno}, por favor diríjase al ${
@@ -57,7 +56,7 @@ export const useTurnosRealtime = ({
 		} catch (speechErr) {
 			console.error("❌ Error en síntesis de voz:", speechErr);
 		}
-	}, []);
+	});
 
 	/**
 	 * Efecto: Manejo de conexión y cambio de sede
@@ -72,16 +71,9 @@ export const useTurnosRealtime = ({
 				// Conectar al socket si no está conectado
 				await socketService.connect();
 
-				// Si cambió la sede, salir de la anterior
-				if (previousSedeId.current && previousSedeId.current !== sedeId) {
-					await socketService.leaveSedeRoom(previousSedeId.current);
-				}
-
-				// Unirse a la nueva sala de sede
-				if (previousSedeId.current !== sedeId) {
-					await socketService.joinSedeRoom(sedeId);
-					previousSedeId.current = sedeId;
-				}
+				// Unirse a la sala de sede
+				await socketService.joinSedeRoom(sedeId);
+				previousSedeId.current = sedeId;
 
 				setIsConnected(socketService.isConnected());
 			} catch (err) {
@@ -93,7 +85,7 @@ export const useTurnosRealtime = ({
 
 		connectAndJoin();
 
-		// Cleanup: NO desconectar, solo salir de la sala
+		// Cleanup: salir de la sala antes de cambiar
 		return () => {
 			if (previousSedeId.current) {
 				socketService.leaveSedeRoom(previousSedeId.current);
@@ -102,7 +94,9 @@ export const useTurnosRealtime = ({
 	}, [sedeId, autoConnect]);
 
 	/**
-	 * Efecto: Registrar listeners del socket (garantiza conexión antes de registrar)
+	 * Efecto: Registrar listeners del socket
+	 * 👇 SIN dependencias para evitar re-registro
+	 * El servicio de socket previene duplicados automáticamente
 	 */
 	useEffect(() => {
 		console.log("🔌 Registrando listeners de socket...");
@@ -166,7 +160,7 @@ export const useTurnosRealtime = ({
 		const handleTurnoLlamado = (turno: TurnoDisplayData) => {
 			console.log("📢 Turno llamado:", turno);
 			setTurnoActual(turno);
-			playTurnoCallSound(turno);
+			playTurnoCallSoundRef.current(turno); // 👈 Usar ref
 			setTurnos((prev) => {
 				const exists = prev.find(
 					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
@@ -184,7 +178,7 @@ export const useTurnosRealtime = ({
 		const handleRellamarTurno = (turno: TurnoDisplayData) => {
 			console.log("🔁 Turno re-llamado:", turno);
 			setTurnoActual(turno);
-			playTurnoCallSound(turno);
+			playTurnoCallSoundRef.current(turno); // 👈 Usar ref
 		};
 
 		const handleTurnoAtendiendo = (turno: TurnoDisplayData) => {
@@ -215,12 +209,9 @@ export const useTurnosRealtime = ({
 			setTurnoActual((current) => (current?.id === turno.id ? null : current));
 		};
 
-		let socketInstance = socketService.getSocket();
-
 		const register = async () => {
 			try {
-				// Garantizar socket conectado antes de registrar
-				socketInstance = await socketService.connect();
+				const socketInstance = await socketService.connect();
 
 				socketInstance.on("connect", handleConnect);
 				socketInstance.on("disconnect", handleDisconnect);
@@ -232,6 +223,8 @@ export const useTurnosRealtime = ({
 				socketInstance.on("turno:atendiendo", handleTurnoAtendiendo);
 				socketInstance.on("turno:finalizado", handleTurnoFinalizado);
 				socketInstance.on("turno:cancelado", handleTurnoCancelado);
+
+				console.log("✅ Listeners registrados correctamente");
 			} catch (err) {
 				console.error("Error registrando listeners de socket:", err);
 				setError("No se pudieron registrar listeners de socket");
@@ -242,6 +235,7 @@ export const useTurnosRealtime = ({
 
 		return () => {
 			console.log("🔌 Removiendo listeners de socket...");
+			const socketInstance = socketService.getSocket();
 			if (socketInstance) {
 				socketInstance.off("connect", handleConnect);
 				socketInstance.off("disconnect", handleDisconnect);
@@ -249,12 +243,13 @@ export const useTurnosRealtime = ({
 				socketInstance.off("turno:creado", handleTurnoCreado);
 				socketInstance.off("turno:actualizado", handleTurnoActualizado);
 				socketInstance.off("turno:llamado", handleTurnoLlamado);
+				socketInstance.off("turno:rellamar", handleRellamarTurno);
 				socketInstance.off("turno:atendiendo", handleTurnoAtendiendo);
-				socketInstance.off("turno:finalizado", handleTurnoFinalizado);
-				socketInstance.off("turno:cancelado", handleTurnoCancelado);
+				socketInstance.off("turno:finalizado");
+				socketInstance.off("turno:cancelado");
 			}
 		};
-	}, [playTurnoCallSound]);
+	}, []); // 👈 Sin dependencias
 
 	return {
 		// Estado
