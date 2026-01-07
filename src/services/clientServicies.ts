@@ -1,6 +1,6 @@
 import { buildResponseError } from "./serviceUtils";
-import type { FullCliente } from "@/@types/clientes";
-import { getFindClient } from "./api";
+import type { DataCitaPrevia, FullCliente } from "@/@types/clientes";
+import { getApiCone } from "./api";
 import { apiService } from "./apiService";
 
 interface ApiResponse<T> {
@@ -45,8 +45,8 @@ export class ClientService {
 		identification: string
 	): Promise<FullCliente> {
 		try {
-			const res = (await getFindClient(
-				identification
+			const res = (await getApiCone(
+				`/pacientes/${identification}`
 			)) as ApiResponseConeuro<FullCliente>;
 
 			if (res.status !== 200 || !res.data) {
@@ -55,6 +55,22 @@ export class ClientService {
 			return res.data;
 		} catch (err) {
 			console.error("Error buscando cliente:", err);
+			throw err;
+		}
+	}
+
+	async checkCitaPrevia(identification: string): Promise<DataCitaPrevia[]> {
+		try {
+			const res = (await getApiCone(
+				`/citaprevia/${identification}`
+			)) as ApiResponseConeuro<DataCitaPrevia[]>;
+
+			if (res.status !== 200 || !res.data) {
+				throw buildResponseError(res, "Error buscando cliente");
+			}
+			return res.data;
+		} catch (err) {
+			console.error("Error verificando cita previa:", err);
 			throw err;
 		}
 	}

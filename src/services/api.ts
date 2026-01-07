@@ -54,27 +54,46 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 // === TURNOS ===
-export const getFindClient = async (
-	identification: string
-): Promise<unknown> => {
+export const getApiCone = async (endpoint: string): Promise<unknown> => {
 	try {
-		const response = await fetch(
-			`${env.API_CONEURO_RESULTADOS}/pacientes/${identification}`,
-			{
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-					"X-Key-App": env.API_CONEURO_KEY,
-				},
-			}
-		);
+		const response = await fetch(`${env.API_CONEURO_RESULTADOS}${endpoint}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Key-App": env.API_CONEURO_KEY,
+			},
+		});
 		const value = await response.json();
 		if (!response.ok) {
-			throw new Error(value.msg || "Error buscando paciente");
+			throw new Error(value.msg || "Error desconocido");
 		}
 		return value;
 	} catch (error) {
-		console.error(`Error en GET /pacientes/${identification}:`, error);
+		console.error(`Error en GET ${endpoint}:`, error);
+		throw error;
+	}
+};
+
+export const postApiCone = async (
+	endpoint: string,
+	data?: unknown
+): Promise<unknown> => {
+	try {
+		const response = await fetch(`${env.API_CONEURO_RESULTADOS}${endpoint}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Key-App": env.API_CONEURO_KEY,
+			},
+			body: data ? JSON.stringify(data) : undefined,
+		});
+		const value = await response.json();
+		if (!response.ok) {
+			throw new Error(value.msg || "Error desconocido");
+		}
+		return value;
+	} catch (error) {
+		console.error(`Error en POST ${endpoint}:`, error);
 		throw error;
 	}
 };

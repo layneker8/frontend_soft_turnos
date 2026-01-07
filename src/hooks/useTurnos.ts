@@ -4,7 +4,7 @@ import { useToastStore } from "@/stores/toastStore";
 import { TURNO_PERMISSIONS } from "@/constants/permissions";
 import type { CreateTurnoData, Turno } from "@/@types/turnos";
 import { turnoService } from "@/services/turnosService";
-import type { FullCliente } from "@/@types/clientes";
+import type { DataCitaPrevia, FullCliente } from "@/@types/clientes";
 import { clientServices } from "@/services/clientServicies";
 
 export const useTurnos = () => {
@@ -103,7 +103,12 @@ export const useTurnos = () => {
 	const findClient = useCallback(
 		async (
 			identification: string
-		): Promise<{ ok: boolean; message?: string; data?: FullCliente }> => {
+		): Promise<{
+			ok: boolean;
+			message?: string;
+			paciente?: FullCliente;
+			cita?: DataCitaPrevia[];
+		}> => {
 			if (!canRead) {
 				addToast({
 					type: "error",
@@ -119,7 +124,13 @@ export const useTurnos = () => {
 				const clientData = await clientServices.findClientByIdentification(
 					identification
 				);
-				return { ok: true, data: clientData };
+
+				// en caso que exista paciente buscar si tiene cita previa
+				const existCitaPrevia = await clientServices.checkCitaPrevia(
+					identification
+				);
+
+				return { ok: true, paciente: clientData, cita: existCitaPrevia };
 			} catch (err) {
 				const { message } = parseBackendError(err);
 				return { ok: false, message };

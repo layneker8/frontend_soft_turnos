@@ -1,3 +1,5 @@
+import type { DataCitaPrevia } from "./clientes";
+
 /* Tipos para turnos */
 export interface Turno {
 	id: string;
@@ -19,6 +21,7 @@ export interface CreateTurnoData {
 	prioridad_id: number;
 	sede_id: number;
 	observaciones?: string;
+	cita: DataCitaPrevia | null;
 }
 
 export interface LlamarTurnoData {

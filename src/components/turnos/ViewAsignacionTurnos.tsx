@@ -10,8 +10,9 @@ import Loading from "../common/Loading";
 import { useTurnos } from "@/hooks/useTurnos";
 import type { Turno } from "../../@types/turnos";
 import ClienteModal from "./ClienteModal";
-import type { FullCliente } from "@/@types/clientes";
+import type { DataCitaPrevia, FullCliente } from "@/@types/clientes";
 import { Link } from "react-router-dom";
+import CitasModal from "./CitasModal";
 
 interface stateAsignacionTurnos {
 	identification: number | string;
@@ -45,8 +46,13 @@ const ViewCrearTurnos: React.FC = () => {
 	const [services, setServices] = useState<FullServicios[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [turnoCreado, setTurnoCreado] = useState<Turno | null>(null);
+	const [citasPrevias, setCitasPrevias] = useState<DataCitaPrevia[]>([]);
+	const [citaSeleccionada, setCitaSeleccionada] =
+		useState<DataCitaPrevia | null>(null);
 	// Modal para crear nuevo cliente
 	const [openModal, setOpenModal] = useState(false);
+	// Modal para mostrar citas previas
+	const [openCitasModal, setOpenCitasModal] = useState(false);
 
 	const loadServices = useCallback(async () => {
 		const services = await getServicesActive(user?.id_sede || 0);
@@ -71,7 +77,7 @@ const ViewCrearTurnos: React.FC = () => {
 	}, [loadServices]);
 
 	const [state, setState] = useState<stateAsignacionTurnos>({
-		identification: "1234567",
+		identification: "1093756959",
 		nombre_cliente: "",
 		email: "",
 		telefono: "",
@@ -138,9 +144,22 @@ const ViewCrearTurnos: React.FC = () => {
 
 		let clientData = null;
 
-		if (infoClient.ok && infoClient.data) {
-			clientData = infoClient.data;
+		if (infoClient.ok && infoClient.paciente) {
+			clientData = infoClient.paciente;
+			if (infoClient.cita && infoClient.cita.length > 0) {
+				const cantidadCitas = infoClient.cita.length;
+				addToast({
+					type: "info",
+					title: `El usuario tiene ${cantidadCitas} cita(s) en el día`,
+					message:
+						"Por favor, verifique las citas existentes antes de asignar un nuevo turno.",
+				});
+				setOpenCitasModal(true);
+				setCitasPrevias(infoClient.cita);
+			}
 		} else {
+			setCitasPrevias([]);
+			setCitaSeleccionada(null);
 			// Si no se encuentra externamente, buscar localmente
 			const infoClientLocal = await findClientLocal(identificationStr);
 
@@ -173,6 +192,26 @@ const ViewCrearTurnos: React.FC = () => {
 		setCurrentStep(2);
 	};
 
+	const handleCitaPreviaSubmit = (cita: DataCitaPrevia): boolean => {
+		console.log("id_cita", cita.id_cita);
+		setOpenCitasModal(false);
+		setCitaSeleccionada(cita);
+
+		return true;
+	};
+
+	const handleCloseCitasModal = () => {
+		if (citaSeleccionada === null) {
+			addToast({
+				type: "warning",
+				title: "Cita no seleccionada",
+				message: "Por favor, selecciona una cita previa para continuar.",
+			});
+			return;
+		}
+		setOpenCitasModal(false);
+	};
+
 	const handleClienteSubmit = (data: FullCliente): boolean => {
 		setState({
 			...state,
@@ -196,6 +235,7 @@ const ViewCrearTurnos: React.FC = () => {
 			...(state.email ? { email: state.email } : null),
 			...(state.telefono ? { telefono: state.telefono } : null),
 			...(state.observaciones ? { observaciones: state.observaciones } : null),
+			cita: citaSeleccionada ? citaSeleccionada : null,
 		});
 		if (response.ok) {
 			// Solo si la creación fue exitosa, reiniciamos el formulario
@@ -341,7 +381,7 @@ const ViewCrearTurnos: React.FC = () => {
 								{services.map((servicio) => (
 									<button
 										key={servicio.id}
-										className="flex items-center justify-center h-[80px] p-3 shadow shadow-primary-500/50 bg-primary/10 rounded-lg focus:outline-primary focus:ring-2 focus:ring-primary cursor-pointer "
+										className="flex items-center justify-center h-20 p-3 shadow shadow-primary-500/50 bg-primary/10 rounded-lg focus:outline-primary focus:ring-2 focus:ring-primary cursor-pointer "
 										onClick={() => {
 											setState({
 												...state,
@@ -488,6 +528,46 @@ const ViewCrearTurnos: React.FC = () => {
 										{state.prioridad}
 									</span>
 								</p>
+								{citaSeleccionada && (
+									<>
+										<p className="flex items-center text-sm font-medium text-light dark:text-text-dark">
+											<span className="material-symbols-rounded mr-1 text-md!">
+												event_available
+											</span>
+											Información de Cita Seleccionada:
+										</p>
+										<div className="border p-2 pl-3 rounded bg-primary-100/20 border-primary-700">
+											<p className="text-xs text-text-light dark:text-text-dark mb-1 ">
+												<strong className="text-primary-700">Servicio:</strong>{" "}
+												{citaSeleccionada.servicio}
+											</p>
+											<p className="text-xs text-text-light dark:text-text-dark mb-1">
+												<strong className="text-primary-700">
+													Especialista:
+												</strong>{" "}
+												{citaSeleccionada.especialista_nombre || "N/A"}
+											</p>
+											<p className="text-xs text-text-light dark:text-text-dark mb-1">
+												<strong className="text-primary-700">Fecha:</strong>{" "}
+												{new Date(
+													citaSeleccionada.fecha_asignacion
+												).toLocaleString("es-ES", {
+													year: "numeric",
+													month: "long",
+													day: "numeric",
+													hour: "2-digit",
+													minute: "2-digit",
+													hour12: true,
+												})}
+											</p>
+
+											<p className="text-xs text-text-light dark:text-text-dark mb-1">
+												<strong className="text-primary-700">Lugar:</strong>{" "}
+												{citaSeleccionada.lugar_cita}
+											</p>
+										</div>
+									</>
+								)}
 								<div>
 									<label
 										className="flex items-center text-sm font-medium dark:text-gray-300 mb-1"
@@ -552,6 +632,7 @@ const ViewCrearTurnos: React.FC = () => {
 							className="mt-8 w-full flex justify-center py-3 px-4 border border-border-light dark:border-border-dark rounded-lg text-sm font-bold text-text-light dark:text-text-dark hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition"
 							onClick={() => {
 								setTurnoCreado(null);
+								setCitaSeleccionada(null);
 								setCurrentStep(1);
 							}}
 						>
@@ -565,6 +646,12 @@ const ViewCrearTurnos: React.FC = () => {
 				isOpen={openModal}
 				onClose={() => setOpenModal(false)}
 				onSubmit={handleClienteSubmit}
+			/>
+			<CitasModal
+				data={citasPrevias}
+				isOpen={openCitasModal}
+				onClose={handleCloseCitasModal}
+				onSubmit={handleCitaPreviaSubmit}
 			/>
 		</div>
 	);

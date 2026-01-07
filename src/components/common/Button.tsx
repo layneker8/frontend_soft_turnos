@@ -14,7 +14,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 const getButtonClass = (variant: ButtonProps["variant"]) => {
 	switch (variant) {
 		case "primary":
-			return "bg-blue-600 text-white hover:bg-blue-700";
+			return "bg-primary text-white hover:bg-primary-dark";
 		case "secondary":
 			return "bg-gray-200 text-gray-800 hover:bg-gray-300";
 		case "danger":
