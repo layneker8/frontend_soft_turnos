@@ -59,6 +59,17 @@ export const useTurnosRealtime = ({
 	});
 
 	/**
+	 * Efecto: Limpiar estados cuando cambie la sede
+	 */
+	useEffect(() => {
+		if (previousSedeId.current !== null && previousSedeId.current !== sedeId) {
+			console.log("🧹 Limpiando estados al cambiar de sede");
+			setTurnos([]);
+			setTurnoActual(null);
+		}
+	}, [sedeId]);
+
+	/**
 	 * Efecto: Manejo de conexión y cambio de sede
 	 */
 	useEffect(() => {
