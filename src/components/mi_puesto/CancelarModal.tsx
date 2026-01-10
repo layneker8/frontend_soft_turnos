@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../common/Modal";
-import type { CancelarTurno, MotivoCancelacion, TurnoLlamado } from "@/@types";
+import type {
+	CancelarTurno,
+	MotivoCancelacion,
+	DataTurnoCompleto,
+} from "@/@types";
 import { miPuestoService } from "@/services/miPuestoService";
 
 interface CancelarModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSubmit: (data: CancelarTurno) => Promise<boolean>;
-	turno: TurnoLlamado;
+	turno: DataTurnoCompleto;
 	loading?: boolean;
 	serverError?: string;
 	serverFieldErrors?: Record<string, string>;

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../common/Modal";
-import type { FinalizarData, TurnoLlamado } from "@/@types";
+import type { FinalizarData, DataTurnoCompleto } from "@/@types";
 
 interface FinalizarModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSubmit: (data: FinalizarData) => Promise<boolean>;
-	turno: TurnoLlamado;
+	turno: DataTurnoCompleto;
 	loading?: boolean;
 	serverError?: string;
 	serverFieldErrors?: Record<string, string>;
