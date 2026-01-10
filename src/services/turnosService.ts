@@ -5,7 +5,7 @@ import type {
 	FinalizarData,
 	LlamarTurnoData,
 	Turno,
-	TurnoLlamado,
+	DataTurnoCompleto,
 } from "@/@types";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
@@ -14,6 +14,7 @@ interface ApiResponse<T> {
 	success: boolean;
 	data: T;
 	error?: string;
+	total?: number;
 }
 export class TurnoService {
 	async create(data: CreateTurnoData): Promise<Turno> {
@@ -36,12 +37,12 @@ export class TurnoService {
 	async cambiarEstadoTurno(
 		id_turno: number,
 		data: CambiarEstadoTurnoData
-	): Promise<TurnoLlamado> {
+	): Promise<DataTurnoCompleto> {
 		try {
 			const response = (await apiService.patch(
 				`/api/turnos/${id_turno}/estado`,
 				data
-			)) as ApiResponse<TurnoLlamado>;
+			)) as ApiResponse<DataTurnoCompleto>;
 
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error cambiando estado del turno");
@@ -55,14 +56,14 @@ export class TurnoService {
 	}
 
 	// finalizar turno
-	async finalizarTurno(data: FinalizarData): Promise<TurnoLlamado> {
+	async finalizarTurno(data: FinalizarData): Promise<DataTurnoCompleto> {
 		try {
 			const response = (await apiService.post(
 				`/api/turnos/${data.turno_id}/finalizar`,
 				{
 					observaciones: data.observaciones,
 				}
-			)) as ApiResponse<TurnoLlamado>;
+			)) as ApiResponse<DataTurnoCompleto>;
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error finalizando el turno");
 			}
@@ -95,12 +96,12 @@ export class TurnoService {
 	}
 
 	// Llamar el siguiente turno
-	async llamarTurno(data: LlamarTurnoData): Promise<TurnoLlamado> {
+	async llamarTurno(data: LlamarTurnoData): Promise<DataTurnoCompleto> {
 		try {
 			const response = (await apiService.post(
 				"/api/turnos/call-next",
 				data
-			)) as ApiResponse<TurnoLlamado>;
+			)) as ApiResponse<DataTurnoCompleto>;
 
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error llamando turno");
@@ -113,11 +114,11 @@ export class TurnoService {
 	}
 
 	// Rellamar el mismo turno
-	async rellamarTurno(turno_id: string): Promise<TurnoLlamado> {
+	async rellamarTurno(turno_id: string): Promise<DataTurnoCompleto> {
 		try {
 			const response = (await apiService.get(
 				`/api/turnos/call-current/${turno_id}`
-			)) as ApiResponse<TurnoLlamado>;
+			)) as ApiResponse<DataTurnoCompleto>;
 
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error volviendo a llamar turno");
@@ -126,6 +127,24 @@ export class TurnoService {
 			return response.data;
 		} catch (error) {
 			console.error("Error volviendo a llamar turno:", error);
+			throw error;
+		}
+	}
+
+	// Traer los turnos en cola para una sede
+	async getTurnosEnCola(
+		sede_id: number
+	): Promise<{ data: DataTurnoCompleto[]; total: number }> {
+		try {
+			const response = (await apiService.get(
+				`/api/turnos/queue?sede_id=${sede_id}`
+			)) as ApiResponse<DataTurnoCompleto[]>;
+			return {
+				data: response.data,
+				total: response.total || 0,
+			};
+		} catch (error) {
+			console.error("Error obteniendo turnos en cola:", error);
 			throw error;
 		}
 	}

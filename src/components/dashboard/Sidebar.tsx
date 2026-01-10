@@ -74,15 +74,15 @@ const sidebarItems: SidebarItem[] = [
 			any: [ALL_PERMISSIONS.CUBICULOS.READ, ALL_PERMISSIONS.CUBICULOS.MANAGE],
 		},
 	},
-	{
-		label: "Pacientes",
-		path: "/dashboard/pacientes",
-		icon: "group",
-		module: "pacientes",
-		requiredPermissions: {
-			any: [ALL_PERMISSIONS.CLIENTES.READ, ALL_PERMISSIONS.CLIENTES.MANAGE],
-		},
-	},
+	// {
+	// 	label: "Pacientes",
+	// 	path: "/dashboard/pacientes",
+	// 	icon: "group",
+	// 	module: "pacientes",
+	// 	requiredPermissions: {
+	// 		any: [ALL_PERMISSIONS.CLIENTES.READ, ALL_PERMISSIONS.CLIENTES.MANAGE],
+	// 	},
+	// },
 	{
 		label: "Roles",
 		path: "/dashboard/roles",
@@ -116,20 +116,20 @@ const sidebarItems: SidebarItem[] = [
 			],
 		},
 	},
-	{
-		label: "Historial de Turnos",
-		path: "/dashboard/historial-turnos",
-		icon: "history",
-		module: "turnos",
-		requiredPermissions: {
-			all: [
-				ALL_PERMISSIONS.TURNO.CALL,
-				ALL_PERMISSIONS.TURNO.FINISH,
-				ALL_PERMISSIONS.TURNO.CANCEL,
-				ALL_PERMISSIONS.TURNO.UPDATE,
-			],
-		},
-	},
+	// {
+	// 	label: "Historial de Turnos",
+	// 	path: "/dashboard/historial-turnos",
+	// 	icon: "history",
+	// 	module: "turnos",
+	// 	requiredPermissions: {
+	// 		all: [
+	// 			ALL_PERMISSIONS.TURNO.CALL,
+	// 			ALL_PERMISSIONS.TURNO.FINISH,
+	// 			ALL_PERMISSIONS.TURNO.CANCEL,
+	// 			ALL_PERMISSIONS.TURNO.UPDATE,
+	// 		],
+	// 	},
+	// },
 ];
 
 // Componente para renderizar un elemento del sidebar

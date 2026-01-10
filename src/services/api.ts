@@ -76,7 +76,16 @@ export const getApiCone = async (endpoint: string): Promise<unknown> => {
 
 export const postApiCone = async (
 	endpoint: string,
-	data?: unknown
+	data: {
+		servicio: string;
+		estado: string;
+		documento_especialista: string;
+		id_paciente: number;
+		fecha_cita: string;
+		id_cita: number;
+		cantidad_citas: number;
+		old_estado?: string;
+	}
 ): Promise<unknown> => {
 	try {
 		const response = await fetch(`${env.API_CONEURO_RESULTADOS}${endpoint}`, {

@@ -2,17 +2,16 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type {
 	MiPuesto,
-	// TurnoLlamado,
 	AsignacionesCubiculo,
 	pausaAtencion,
-	TurnoLlamado,
+	DataTurnoCompleto,
 } from "@/@types";
 import env from "@/config/env";
 
 interface MiPuestoState {
 	puestoActual: MiPuesto | null;
 	cubiculosDisponibles: AsignacionesCubiculo[];
-	turnoActual: TurnoLlamado | null;
+	turnoActual: DataTurnoCompleto | null;
 	estadoCubiculo: "Ocupado" | "Disponible" | "Pausado" | "Finalizado";
 	tiempoTranscurrido: number;
 	pausaActual: pausaAtencion | null;
@@ -20,7 +19,7 @@ interface MiPuestoState {
 	// Actions
 	setPuestoActual: (puesto: MiPuesto | null) => void;
 	setCubiculosDisponibles: (cubiculos: AsignacionesCubiculo[]) => void;
-	setTurnoActual: (turno: TurnoLlamado | null) => void;
+	setTurnoActual: (turno: DataTurnoCompleto | null) => void;
 	setEstadoCubiculo: (
 		estado: "Ocupado" | "Disponible" | "Pausado" | "Finalizado"
 	) => void;

@@ -6,6 +6,7 @@ import { cubiculoService } from "@/services/cubiculoService";
 import { turnoService } from "@/services/turnosService";
 import { TURNO_PERMISSIONS } from "@/constants/permissions";
 import { usePermissions } from "./usePermissions";
+import { postApiCone } from "@/services/api";
 
 export const useMiPuestoAtencion = () => {
 	const {
@@ -355,6 +356,20 @@ export const useMiPuestoAtencion = () => {
 					puestoActual.id,
 					"Disponible"
 				);
+				// actualizamos el estado en coneuroresultados siempre y cuando sea una cita
+				if (turnoActual.is_cita) {
+					await postApiCone("/updateEstadoCita", {
+						servicio: turnoActual.cita?.servicio || "",
+						estado: "Atendida",
+						documento_especialista:
+							turnoActual.cita?.especialista_documento || "",
+						id_paciente: turnoActual.cita?.id_paciente || 0,
+						fecha_cita: turnoActual.cita?.fecha_asignacion || "",
+						cantidad_citas: turnoActual.cita?.cantidad_citas || 0,
+						id_cita: turnoActual.cita?.id_cita || 0,
+						old_estado: turnoActual.cita?.estado_cita || "",
+					});
+				}
 				setTurnoActual(null);
 				setEstadoCubiculo("Disponible");
 				setTiempoTranscurrido(0);
@@ -556,6 +571,37 @@ export const useMiPuestoAtencion = () => {
 		setEstadoCubiculo,
 	]);
 
+	// Turnos en cola por sede
+	const cargarTurnosEnColaPorSede = useCallback(
+		async (sede_id: number | undefined) => {
+			setLoading(true);
+			if (!sede_id) {
+				addToast({
+					type: "error",
+					title: "Error",
+					message: "No se ha especificado una sede válida",
+				});
+				setLoading(false);
+				return [];
+			}
+			try {
+				const turnos = await turnoService.getTurnosEnCola(sede_id);
+				return turnos;
+			} catch (error) {
+				const { message } = parseBackendError(error);
+				addToast({
+					type: "error",
+					title: "Error",
+					message: message,
+				});
+				return [];
+			} finally {
+				setLoading(false);
+			}
+		},
+		[addToast, parseBackendError]
+	);
+
 	return {
 		// Estado
 		puestoActual,
@@ -579,5 +625,6 @@ export const useMiPuestoAtencion = () => {
 		pausarCubiculo,
 		reanudarCubiculo,
 		liberarCubiculo,
+		cargarTurnosEnColaPorSede,
 	};
 };

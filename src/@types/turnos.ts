@@ -21,7 +21,7 @@ export interface CreateTurnoData {
 	prioridad_id: number;
 	sede_id: number;
 	observaciones?: string;
-	cita: DataCitaPrevia | null;
+	cita?: DataCitaPrevia;
 }
 
 export interface LlamarTurnoData {
@@ -29,7 +29,7 @@ export interface LlamarTurnoData {
 	sede_id: number;
 }
 
-export interface TurnoLlamado {
+export interface DataTurnoCompleto {
 	id: number;
 	codigo_turno: string;
 	cliente_id: number;
@@ -53,9 +53,22 @@ export interface TurnoLlamado {
 		documento: string;
 		telefono?: string;
 		email?: string;
-	};
+	} | null;
 	servicio: string;
 	nombre_prioridad: string;
+	is_cita: boolean;
+	cita?: {
+		cantidad_citas: number;
+		especialista_documento: string;
+		especialista_nombre: string;
+		estado_cita: string;
+		fecha_asignacion: string;
+		id_cita: number;
+		id_paciente: number;
+		lugar_cita: string;
+		servicio: string;
+		turno_id: number;
+	} | null;
 }
 
 export interface CambiarEstadoTurnoData {

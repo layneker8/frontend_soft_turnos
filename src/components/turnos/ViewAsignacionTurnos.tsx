@@ -235,7 +235,7 @@ const ViewCrearTurnos: React.FC = () => {
 			...(state.email ? { email: state.email } : null),
 			...(state.telefono ? { telefono: state.telefono } : null),
 			...(state.observaciones ? { observaciones: state.observaciones } : null),
-			cita: citaSeleccionada ? citaSeleccionada : null,
+			...(citaSeleccionada ? { cita: citaSeleccionada } : null),
 		});
 		if (response.ok) {
 			// Solo si la creación fue exitosa, reiniciamos el formulario

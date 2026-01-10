@@ -5,7 +5,7 @@ import Button from "../common/Button";
 import FinalizarModal from "./FinalizarModal";
 import PausarModal from "./PausarModal";
 import PausaActivaModal from "./PausaActivaModal";
-import type { CancelarTurno, FinalizarData } from "@/@types";
+import type { CancelarTurno, DataTurnoCompleto, FinalizarData } from "@/@types";
 import CancelarModal from "./CancelarModal";
 
 export default function ViewCallTurnos() {
@@ -25,43 +25,70 @@ export default function ViewCallTurnos() {
 		cargarPausasActual,
 		atenderTurno,
 		liberarCubiculo,
+		cargarTurnosEnColaPorSede,
 	} = useMiPuestoAtencion();
 
-	const [horaActual, setHoraActual] = useState("");
+	// const [horaActual, setHoraActual] = useState("");
 	const [showFinalizarModal, setShowFinalizarModal] = useState(false);
 	const [showCancelarModal, setShowCancelarModal] = useState(false);
 	const [showPausarModal, setShowPausarModal] = useState(false);
 	const [showPausaActivaModal, setShowPausaActivaModal] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [turnosEnCola, setTurnosEnCola] = useState<{
+		data: DataTurnoCompleto[];
+		total: number;
+	}>({ data: [], total: 0 });
 
 	// Actualizar hora cada segundo
-	useEffect(() => {
-		const updateTime = () => {
-			const now = new Date();
-			let hours = now.getHours();
-			const minutes = now.getMinutes();
-			const ampm = hours >= 12 ? "PM" : "AM";
-			hours = hours % 12;
-			hours = hours ? hours : 12;
-			const minutesStr = minutes < 10 ? "0" + minutes : minutes;
-			setHoraActual(`${hours}:${minutesStr} ${ampm}`);
-		};
+	// useEffect(() => {
+	// 	const updateTime = () => {
+	// 		const now = new Date();
+	// 		let hours = now.getHours();
+	// 		const minutes = now.getMinutes();
+	// 		const ampm = hours >= 12 ? "PM" : "AM";
+	// 		hours = hours % 12;
+	// 		hours = hours ? hours : 12;
+	// 		const minutesStr = minutes < 10 ? "0" + minutes : minutes;
+	// 		setHoraActual(`${hours}:${minutesStr} ${ampm}`);
+	// 	};
 
-		updateTime();
-		const interval = setInterval(updateTime, 1000);
+	// 	updateTime();
+	// 	const interval = setInterval(updateTime, 1000);
 
-		return () => clearInterval(interval);
-	}, []);
+	// 	return () => clearInterval(interval);
+	// }, []);
 
 	// Cuando se carga el componente, cargar pausas actuales
 	useEffect(() => {
-		if (puestoActual?.id) {
-			cargarPausasActual(puestoActual.id);
-		}
+		const loadData = async () => {
+			if (puestoActual?.id) {
+				cargarPausasActual(puestoActual.id);
+			}
+			if (user?.id_sede) {
+				const turnos = await cargarTurnosEnColaPorSede(user.id_sede);
+				if (
+					turnos &&
+					typeof turnos === "object" &&
+					"data" in turnos &&
+					"total" in turnos
+				) {
+					setTurnosEnCola(turnos);
+				} else {
+					setTurnosEnCola({ data: [], total: 0 });
+				}
+			}
+		};
+		loadData();
 		if (estadoCubiculo === "Pausado") {
 			setShowPausaActivaModal(true);
 		}
-	}, [puestoActual?.id, cargarPausasActual, estadoCubiculo]);
+	}, [
+		puestoActual?.id,
+		cargarPausasActual,
+		estadoCubiculo,
+		cargarTurnosEnColaPorSede,
+		user?.id_sede,
+	]);
 
 	// Formatear tiempo transcurrido en MM:SS
 	const formatearTiempo = (segundos: number): string => {
@@ -70,6 +97,14 @@ export default function ViewCallTurnos() {
 		return `${mins.toString().padStart(2, "0")}:${secs
 			.toString()
 			.padStart(2, "0")}`;
+	};
+
+	// calcular tiempo de espera desde la fecha de creacion del turno
+	const calculateTimeInQueue = (fechaCreacion: string): number => {
+		const createdAt = new Date(fechaCreacion).getTime();
+		const now = Date.now();
+		const diffInSeconds = Math.floor((now - createdAt) / 1000);
+		return diffInSeconds;
 	};
 
 	const handleLlamarTurno = async () => {
@@ -203,8 +238,8 @@ export default function ViewCallTurnos() {
 	};
 
 	return (
-		<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:h-full xl:min-h-162.5">
-			<div className="lg:col-span-2 bg-white dark:bg-dark rounded-xl border border-black/10 dark:border-dark shadow-sm p-6 flex flex-col items-center justify-center relative">
+		<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:h-full xl:min-h-162.5">
+			<div className="lg:col-span-6 bg-white dark:bg-dark rounded-xl border border-black/10 dark:border-dark shadow-sm p-6 flex flex-col items-center justify-center relative">
 				{/* Vista principal antes de llamar turno */}
 				{!turnoActual && (
 					<div className="w-full max-w-lg mx-auto flex flex-col gap-6">
@@ -345,75 +380,197 @@ export default function ViewCallTurnos() {
 					</div>
 				)}
 			</div>
-			<div className="lg:col-span-1 bg-white dark:bg-primary dark:text-white rounded-xl border border-black/10 dark:border-black/20 shadow-sm p-6 flex flex-col items-center justify-center">
+			<div className="lg:col-span-6 bg-white dark:bg-primary dark:text-white rounded-xl border border-black/10 dark:border-black/20 shadow-sm flex flex-col items-center">
 				{/* Vista principal antes de llamar turno */}
 				{!turnoActual && (
-					<div className="text-center">
-						<p className="text-sm text-secondary dark:text-white mb-2">
-							Hora Actual
-						</p>
-						<p className="text-5xl font-extrabold text-text-light dark:text-white">
-							{horaActual}
-						</p>
-					</div>
+					<>
+						<div className="w-full border-b border-black/10 dark:border-border-dark flex items-center justify-between sticky top-0 z-10 px-6 py-4">
+							<div className="flex items-center gap-3">
+								<span className="material-symbols-rounded text-primary">
+									group
+								</span>
+								<h3 className="text-xl font-bold text-text-light dark:text-text-dark">
+									Turnos en Espera
+								</h3>
+							</div>
+							<span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold">
+								{turnosEnCola.total} en cola
+							</span>
+						</div>
+
+						<div className="flex-1 overflow-y-auto px-6 py-4 w-full">
+							<div className="space-y-4">
+								{turnosEnCola.data.length === 0 && (
+									<div className="text-center">
+										<p className="text-lg text-gray-600 dark:text-gray-400">
+											No hay turnos en espera por el momento.
+										</p>
+									</div>
+								)}
+								{
+									/* Mapeo de turnos en cola */
+									turnosEnCola &&
+										turnosEnCola.data.map((turno) => (
+											<div
+												key={turno.id}
+												className="flex items-center justify-between p-3 bg-background-light dark:bg-background-dark/50 rounded-xl border border-black/10 dark:border-border-dark hover:border-primary/50 transition-colors"
+											>
+												<div className="flex items-center gap-6">
+													<div className="text-2xl font-black text-primary bg-primary/10 w-24 h-13 flex items-center justify-center rounded-lg border border-primary/20">
+														{turno.codigo_turno}
+													</div>
+													<div>
+														<p className="font-bold text-md text-text-light dark:text-text-dark">
+															Servicio: {turno.servicio || "-"}
+														</p>
+														<p className="text-sm text-secondary-500 dark:text-text-muted-dark">
+															Tipo de atención: {turno.prioridad}
+														</p>
+														<p className="text-sm text-secondary-500 dark:text-text-muted-dark flex items-center gap-1">
+															<span className="material-symbols-rounded text-sm!">
+																person
+															</span>
+															{turno.cliente?.nombre || "-"}
+														</p>
+													</div>
+												</div>
+												<div className="text-right">
+													<p className="text-sm text-text-secondary-100 dark:text-text-muted-dark font-medium">
+														Tiempo de espera
+													</p>
+													<p className="text-xl font-bold text-text-light dark:text-text-dark">
+														{formatearTiempo(
+															calculateTimeInQueue(turno.fecha_creacion || "")
+														)}
+													</p>
+												</div>
+											</div>
+										))
+								}
+							</div>
+						</div>
+					</>
 				)}
 
 				{/* Vista de información cuando se ha llamado un turno */}
 				{turnoActual && (
-					<div>
-						<h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-8">
-							Información del Turno
-						</h3>
-						<div className="space-y-6">
-							<div>
-								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-									Nombre
-								</p>
-								<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-									{turnoActual.cliente.nombre}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-									Documento
-								</p>
-								<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-									{turnoActual.cliente.documento}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-									Tipo de atención
-								</p>
-								<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-									{turnoActual.prioridad}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-									Servicio
-								</p>
-								<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-									{turnoActual.servicio || "No especificado"}
-								</p>
-							</div>
-							<div>
-								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-									Fecha y Hora de Llamado
-								</p>
-								<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-									{new Date(turnoActual.fecha_llamado).toLocaleString("es-ES", {
-										day: "2-digit",
-										month: "long",
-										year: "numeric",
-										hour: "2-digit",
-										minute: "2-digit",
-										hour12: true,
-									})}
-								</p>
+					<>
+						<div className="w-full border-b border-black/10 dark:border-border-dark flex items-center justify-between sticky top-0 z-10 px-6 py-3">
+							<div className="flex items-center gap-3">
+								<span className="material-symbols-rounded text-primary">
+									info
+								</span>
+								<h3 className="text-xl font-bold text-text-light dark:text-text-dark">
+									Información del Turno
+								</h3>
 							</div>
 						</div>
-					</div>
+						<div className="flex-1 overflow-y-auto px-6 py-4 w-full">
+							<div className="space-y-2">
+								<div>
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Nombre
+									</p>
+									<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+										{turnoActual.cliente?.nombre || "-"}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Documento
+									</p>
+									<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+										{turnoActual.cliente?.documento || "-"}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Tipo de atención
+									</p>
+									<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+										{turnoActual.prioridad}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Servicio
+									</p>
+									<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+										{turnoActual.servicio || "No especificado"}
+									</p>
+								</div>
+								<div>
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Fecha y Hora de Llamado
+									</p>
+									<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+										{new Date(turnoActual.fecha_llamado).toLocaleString(
+											"es-ES",
+											{
+												day: "2-digit",
+												month: "long",
+												year: "numeric",
+												hour: "2-digit",
+												minute: "2-digit",
+												hour12: true,
+											}
+										)}
+									</p>
+								</div>
+							</div>
+						</div>
+						{turnoActual.is_cita && turnoActual.cita && (
+							<>
+								<div className="w-full border-b border-black/10 dark:border-border-dark flex items-center justify-between sticky top-0 z-10 px-6 py-3 shadow">
+									<div className="flex items-center gap-3">
+										<span className="material-symbols-rounded text-primary">
+											event_available
+										</span>
+										<h3 className="text-xl font-bold text-text-light dark:text-text-dark">
+											Información de la Cita
+										</h3>
+									</div>
+								</div>
+								<div className="flex-1 overflow-y-auto px-6 py-4 w-full">
+									<div className="space-y-2">
+										<div>
+											<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+												Servicio:
+											</p>
+											<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+												{turnoActual.cita.servicio || "No especificado"}
+											</p>
+										</div>
+										<div>
+											<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+												Estado:
+											</p>
+											<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+												{turnoActual.cita.estado_cita || "No especificado"}
+											</p>
+										</div>
+										<div>
+											<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+												fecha y hora de la cita
+											</p>
+											<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
+												{new Date(
+													turnoActual.cita.fecha_asignacion
+												).toLocaleString("es-ES", {
+													day: "2-digit",
+													month: "long",
+													year: "numeric",
+													hour: "2-digit",
+													minute: "2-digit",
+													hour12: true,
+												})}
+											</p>
+										</div>
+									</div>
+								</div>
+							</>
+						)}
+					</>
 				)}
 			</div>
 			{/* Modal de Finalizar */}
