@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
-import { useMiPuestoAtencion } from "@/hooks/useMiPuestoAtencion";
+import type { useMiPuestoAtencion } from "@/hooks/useMiPuestoAtencion";
 import Button from "../common/Button";
 import FinalizarModal from "./FinalizarModal";
 import PausarModal from "./PausarModal";
 import PausaActivaModal from "./PausaActivaModal";
 import type { CancelarTurno, DataTurnoCompleto, FinalizarData } from "@/@types";
 import CancelarModal from "./CancelarModal";
+import { useTurnosRealtime } from "@/hooks/useTurnosRealtime";
+import { TURNO_PERMISSIONS } from "@/constants/permissions";
 
-export default function ViewCallTurnos() {
-	const { user } = useAuthStore();
+interface ViewCallTurnosProps {
+	miPuestoAtencion: ReturnType<typeof useMiPuestoAtencion>;
+}
+
+export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps) {
+	const { user, checkPermission } = useAuthStore();
 	const {
 		puestoActual,
 		turnoActual,
@@ -26,7 +32,14 @@ export default function ViewCallTurnos() {
 		atenderTurno,
 		liberarCubiculo,
 		cargarTurnosEnColaPorSede,
-	} = useMiPuestoAtencion();
+	} = miPuestoAtencion;
+
+	// hook de turnos en tiempo real
+	const { turnosCola } = useTurnosRealtime({
+		sedeId: user?.id_sede || null,
+		autoConnect: true,
+		playSound: false, // No reproducir sonido en el puesto de atención
+	});
 
 	// const [horaActual, setHoraActual] = useState("");
 	const [showFinalizarModal, setShowFinalizarModal] = useState(false);
@@ -39,6 +52,32 @@ export default function ViewCallTurnos() {
 		total: number;
 	}>({ data: [], total: 0 });
 
+	// actualizadmos el state de cola de turnos
+	useEffect(() => {
+		let filteredTurnos = [];
+		// validamos si el usuario tiene el permiso de turno especialista
+		if (checkPermission(TURNO_PERMISSIONS.ESPECIALISTA)) {
+			// filtramos la cola de turnos para mostrar los turnos del especialista
+			const turnosCitas = turnosCola.turnos.filter((turno) => turno.is_cita);
+			const turnosAsignados = [];
+			for (const turno of turnosCitas) {
+				if (turno.cita?.especialista_documento === user?.identificacion) {
+					turnosAsignados.push(turno);
+				}
+			}
+			filteredTurnos = turnosAsignados;
+		} else {
+			// Quitamos las citas de la lista de turnos
+			const turnosSinCitas = turnosCola.turnos.filter(
+				(turno) => !turno.is_cita
+			);
+			filteredTurnos = turnosSinCitas;
+		}
+		setTurnosEnCola({
+			data: filteredTurnos,
+			total: filteredTurnos.length,
+		});
+	}, [turnosCola, checkPermission, user?.identificacion]);
 	// Actualizar hora cada segundo
 	// useEffect(() => {
 	// 	const updateTime = () => {

@@ -8,6 +8,7 @@ import type {
 } from "@/@types/miPuesto";
 import { apiService } from "./apiService";
 import { buildResponseError } from "./serviceUtils";
+import type { DataTurnoCompleto } from "@/@types";
 
 interface ApiResponse<T> {
 	success: boolean;
@@ -173,6 +174,19 @@ export class MiPuestoService {
 			return response.data;
 		} catch (error) {
 			console.error("Error finalizando pausa:", error);
+			throw error;
+		}
+	}
+
+	// Traer información del turno actual en el puesto
+	async getTurnoActual(id_atencion: number): Promise<DataTurnoCompleto> {
+		try {
+			const response = (await apiService.get(
+				`/api/turnos/current/${id_atencion}`
+			)) as ApiResponse<DataTurnoCompleto>;
+			return response.data;
+		} catch (error) {
+			console.error("Error obteniendo turno actual:", error);
 			throw error;
 		}
 	}

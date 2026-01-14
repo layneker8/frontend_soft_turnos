@@ -602,6 +602,35 @@ export const useMiPuestoAtencion = () => {
 		[addToast, parseBackendError]
 	);
 
+	// Efecto para cargar el turno actual cuando cambia el puestoActual
+	useEffect(() => {
+		let isMounted = true;
+
+		const cargarTurno = async () => {
+			if (!puestoActual) return;
+			setLoading(true);
+			try {
+				const turno = await miPuestoService.getTurnoActual(puestoActual.id);
+				if (isMounted) {
+					setTurnoActual(turno);
+				}
+			} catch (error) {
+				console.error("Error cargando turno actual del puesto:", error);
+			} finally {
+				if (isMounted) {
+					setLoading(false);
+				}
+			}
+		};
+
+		cargarTurno();
+
+		return () => {
+			isMounted = false;
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [puestoActual?.id]);
+
 	return {
 		// Estado
 		puestoActual,

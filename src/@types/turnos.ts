@@ -71,6 +71,11 @@ export interface DataTurnoCompleto {
 	} | null;
 }
 
+export interface DataTurnosEnCola {
+	turnos: DataTurnoCompleto[];
+	sede_id: number;
+}
+
 export interface CambiarEstadoTurnoData {
 	estado: "esperando" | "llamado" | "atendiendo" | "finalizado" | "cancelado";
 }
@@ -89,6 +94,7 @@ export interface CancelarTurno {
 export interface UseTurnosRealtimeOptions {
 	sedeId: number | null;
 	autoConnect?: boolean;
+	playSound?: boolean; // Reproducir sonido de llamada de turno (por defecto: true)
 }
 
 export interface TurnoDisplayData {
@@ -110,6 +116,7 @@ export interface TurnoSocketEvents {
 	"turno:atendiendo": (turno: TurnoDisplayData) => void;
 	"turno:finalizado": (turno: TurnoDisplayData) => void;
 	"turno:cancelado": (turno: TurnoDisplayData) => void;
+	"queue:turnos": (data: DataTurnosEnCola) => void;
 }
 
 // Eventos que el cliente puede emitir al servidor

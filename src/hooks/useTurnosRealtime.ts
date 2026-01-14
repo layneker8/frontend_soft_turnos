@@ -3,14 +3,20 @@ import { socketService } from "@/services/socket";
 import type {
 	TurnoDisplayData,
 	UseTurnosRealtimeOptions,
+	DataTurnosEnCola,
 } from "@/@types/turnos";
 
 export const useTurnosRealtime = ({
 	sedeId,
 	autoConnect = true,
+	playSound = true,
 }: UseTurnosRealtimeOptions) => {
 	const [turnos, setTurnos] = useState<TurnoDisplayData[]>([]);
 	const [turnoActual, setTurnoActual] = useState<TurnoDisplayData | null>(null);
+	const [turnosCola, setTurnosCola] = useState<DataTurnosEnCola>({
+		turnos: [],
+		sede_id: 0,
+	});
 	const [isConnected, setIsConnected] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const previousSedeId = useRef<number | null>(null);
@@ -171,7 +177,9 @@ export const useTurnosRealtime = ({
 		const handleTurnoLlamado = (turno: TurnoDisplayData) => {
 			console.log("📢 Turno llamado:", turno);
 			setTurnoActual(turno);
-			playTurnoCallSoundRef.current(turno); // 👈 Usar ref
+			if (playSound) {
+				playTurnoCallSoundRef.current(turno); // 👈 Usar ref
+			}
 			setTurnos((prev) => {
 				const exists = prev.find(
 					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
@@ -189,7 +197,9 @@ export const useTurnosRealtime = ({
 		const handleRellamarTurno = (turno: TurnoDisplayData) => {
 			console.log("🔁 Turno re-llamado:", turno);
 			setTurnoActual(turno);
-			playTurnoCallSoundRef.current(turno); // 👈 Usar ref
+			if (playSound) {
+				playTurnoCallSoundRef.current(turno); // 👈 Usar ref
+			}
 		};
 
 		const handleTurnoAtendiendo = (turno: TurnoDisplayData) => {
@@ -220,6 +230,11 @@ export const useTurnosRealtime = ({
 			setTurnoActual((current) => (current?.id === turno.id ? null : current));
 		};
 
+		const handleColaTurnos = (data: DataTurnosEnCola) => {
+			console.log("📊 Cola de turnos:", data);
+			setTurnosCola(data);
+		};
+
 		const register = async () => {
 			try {
 				const socketInstance = await socketService.connect();
@@ -234,6 +249,7 @@ export const useTurnosRealtime = ({
 				socketInstance.on("turno:atendiendo", handleTurnoAtendiendo);
 				socketInstance.on("turno:finalizado", handleTurnoFinalizado);
 				socketInstance.on("turno:cancelado", handleTurnoCancelado);
+				socketInstance.on("queue:turnos", handleColaTurnos);
 
 				console.log("✅ Listeners registrados correctamente");
 			} catch (err) {
@@ -266,6 +282,7 @@ export const useTurnosRealtime = ({
 		// Estado
 		turnos,
 		turnoActual,
+		turnosCola,
 		isConnected,
 		error,
 

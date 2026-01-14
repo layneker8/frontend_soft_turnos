@@ -19,6 +19,7 @@ export const TURNO_PERMISSIONS = {
 	CALL: "turnos.call",
 	FINISH: "turnos.finish",
 	CANCEL: "turnos.cancel",
+	ESPECIALISTA: "turnos.especialista",
 	MANAGE_QUEUE: "turnos.manage_queue",
 };
 

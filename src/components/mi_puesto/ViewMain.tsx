@@ -7,7 +7,8 @@ import Loading from "../common/Loading";
 
 export default function ViewMain() {
 	const { user } = useAuthStore();
-	const { puestoActual, cargarPuestoActual, loading } = useMiPuestoAtencion();
+	const miPuestoAtencion = useMiPuestoAtencion();
+	const { puestoActual, cargarPuestoActual, loading } = miPuestoAtencion;
 	const [vistaCargada, setVistaCargada] = useState(false);
 
 	useEffect(() => {
@@ -37,5 +38,5 @@ export default function ViewMain() {
 	}
 
 	// Si hay puesto seleccionado, mostrar vista de atención
-	return <ViewCallTurnos />;
+	return <ViewCallTurnos miPuestoAtencion={miPuestoAtencion} />;
 }
