@@ -9,6 +9,7 @@ interface ButtonsProps {
 	onEdit: (user: FullUser) => void;
 	onDelete: (user: FullUser) => void;
 	onForgetEmail: (user: FullUser) => void;
+	isSendingEmail?: boolean;
 }
 
 export default function Buttons({
@@ -17,6 +18,7 @@ export default function Buttons({
 	onEdit,
 	onDelete,
 	onForgetEmail,
+	isSendingEmail = false,
 }: ButtonsProps) {
 	const { user } = useAuthStore();
 	return (
@@ -69,10 +71,17 @@ export default function Buttons({
 							: "Enviar correo para verificación de cuenta"
 					}`}
 					onClick={() => onForgetEmail(row)}
+					disabled={isSendingEmail}
 				>
-					<span className="material-symbols-rounded text-sm! text-secondary-700!">
-						{!row.status_verified ? "outgoing_mail" : "mail_shield"}
-					</span>
+					{isSendingEmail ? (
+						<span className="material-symbols-rounded text-sm! text-secondary-700! animate-spin">
+							progress_activity
+						</span>
+					) : (
+						<span className="material-symbols-rounded text-sm! text-secondary-700!">
+							{!row.status_verified ? "outgoing_mail" : "mail_shield"}
+						</span>
+					)}
 				</button>
 			</ProtectedAnyPermission>
 		</div>

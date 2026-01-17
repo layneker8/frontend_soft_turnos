@@ -47,6 +47,11 @@ const ViewUsers: React.FC = () => {
 		Record<string, string> | undefined
 	>(undefined);
 
+	// Estado local para mostrar loading en envío de correo (sin usar loader del hook)
+	const [sendingEmailUserId, setSendingEmailUserId] = useState<number | null>(
+		null
+	);
+
 	// Esperar a que se inicialice el hook
 	useEffect(() => {
 		if (!loading || !permissionsLoading) {
@@ -130,6 +135,7 @@ const ViewUsers: React.FC = () => {
 					onEdit={handleEditUser}
 					onDelete={handleDelete}
 					onForgetEmail={handleForgetEmail}
+					isSendingEmail={sendingEmailUserId === row.id_usuario}
 				/>
 			),
 			ignoreRowClick: true, // evita que el click en el botón dispare eventos de la fila
@@ -154,20 +160,34 @@ const ViewUsers: React.FC = () => {
 	});
 
 	const handleForgetEmail = async (user: FullUser) => {
-		const mode = user.status_verified ? "verify_account" : "reset_password";
-		const sendMail = await sendEmailToUser(user.id_usuario, mode);
-		if (sendMail.ok) {
-			addToast({
-				type: "success",
-				title: "Correo enviado",
-				message: "El correo fue enviado exitosamente al usuario",
-			});
-		} else {
+		try {
+			setSendingEmailUserId(user.id_usuario);
+			const mode = user.status_verified ? "verify_account" : "reset_password";
+			const sendMail = await sendEmailToUser(user.id_usuario, mode);
+			if (sendMail.ok) {
+				addToast({
+					type: "success",
+					title: "Correo enviado",
+					message: "El correo fue enviado exitosamente al usuario",
+				});
+			} else {
+				addToast({
+					type: "error",
+					title: "Error enviando correo",
+					message: sendMail.message,
+				});
+			}
+		} catch (err) {
 			addToast({
 				type: "error",
-				title: "Error enviando correo",
-				message: sendMail.message,
+				title: "Error",
+				message:
+					err instanceof Error
+						? err.message
+						: "Error inesperado al enviar el correo",
 			});
+		} finally {
+			setSendingEmailUserId(null);
 		}
 	};
 
