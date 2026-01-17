@@ -31,11 +31,11 @@ export const useTurnosRealtime = ({
 				| "llamado"
 				| "atendiendo"
 				| "finalizado"
-				| "cancelado"
+				| "cancelado",
 		) => {
 			return turnos.filter((t) => t.estado === estado);
 		},
-		[turnos]
+		[turnos],
 	);
 
 	/**
@@ -49,7 +49,7 @@ export const useTurnosRealtime = ({
 			const utterance = new SpeechSynthesisUtterance(
 				`Turno ${turno.codigo_turno}, por favor diríjase al ${
 					turno.nombre_cubiculo || "cubículo"
-				}`
+				}`,
 			);
 			utterance.lang = "es-ES";
 			utterance.rate = 0.9; // Velocidad ligeramente más lenta
@@ -136,7 +136,7 @@ export const useTurnosRealtime = ({
 				setTurnos(data);
 				const actual = data.find(
 					(t: TurnoDisplayData) =>
-						t.estado === "llamado" || t.estado === "atendiendo"
+						t.estado === "llamado" || t.estado === "atendiendo",
 				);
 				if (actual) setTurnoActual(actual);
 			}
@@ -146,14 +146,14 @@ export const useTurnosRealtime = ({
 			console.log("🆕 Nuevo turno creado:", turno);
 			setTurnos((prev) => {
 				const exists = prev.find(
-					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
+					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno,
 				);
 				return exists
 					? prev.map((t) =>
 							t.id === turno.id || t.codigo_turno === turno.codigo_turno
 								? { ...t, ...turno }
-								: t
-					  )
+								: t,
+						)
 					: [...prev, turno];
 			});
 		};
@@ -162,14 +162,14 @@ export const useTurnosRealtime = ({
 			console.log("🔄 Turno actualizado:", turno);
 			setTurnos((prev) => {
 				const exists = prev.find(
-					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
+					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno,
 				);
 				return exists
 					? prev.map((t) =>
 							t.id === turno.id || t.codigo_turno === turno.codigo_turno
 								? { ...t, ...turno }
-								: t
-					  )
+								: t,
+						)
 					: [...prev, turno];
 			});
 		};
@@ -182,14 +182,14 @@ export const useTurnosRealtime = ({
 			}
 			setTurnos((prev) => {
 				const exists = prev.find(
-					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
+					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno,
 				);
 				return exists
 					? prev.map((t) =>
 							t.id === turno.id || t.codigo_turno === turno.codigo_turno
 								? { ...t, ...turno }
-								: t
-					  )
+								: t,
+						)
 					: [...prev, turno];
 			});
 		};
@@ -206,14 +206,14 @@ export const useTurnosRealtime = ({
 			console.log("👨‍💼 Turno en atención:", turno);
 			setTurnos((prev) => {
 				const exists = prev.find(
-					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno
+					(t) => t.id === turno.id || t.codigo_turno === turno.codigo_turno,
 				);
 				return exists
 					? prev.map((t) =>
 							t.id === turno.id || t.codigo_turno === turno.codigo_turno
 								? { ...t, ...turno }
-								: t
-					  )
+								: t,
+						)
 					: [...prev, turno];
 			});
 		};
@@ -276,7 +276,8 @@ export const useTurnosRealtime = ({
 				socketInstance.off("turno:cancelado");
 			}
 		};
-	}, []); // 👈 Sin dependencias
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return {
 		// Estado
@@ -290,7 +291,7 @@ export const useTurnosRealtime = ({
 		getTurnosByEstado,
 		turnosEnEspera: turnos.filter((t) => t.estado === "esperando"),
 		turnosEnAtencion: turnos.filter(
-			(t) => t.estado === "llamado" || t.estado === "atendiendo"
+			(t) => t.estado === "llamado" || t.estado === "atendiendo",
 		),
 	};
 };
