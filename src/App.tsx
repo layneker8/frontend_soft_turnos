@@ -5,6 +5,7 @@ import {
 	Navigate,
 } from "react-router-dom";
 import Login from "@/components/auth/Login";
+import ResetPassword from "@/components/auth/ResetPassword";
 import Home from "@/components/dashboard/Home";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ToastContainer from "@/components/common/ToastContainer";
@@ -16,6 +17,7 @@ function App() {
 		<Router>
 			<Routes>
 				<Route path="/login" element={<Login />} />
+				<Route path="/restablecimiento/:token" element={<ResetPassword />} />
 				<Route path="/turnos-view" element={<ViewTurnos />} />
 				<Route
 					path="/create-turnos"

@@ -6,7 +6,7 @@ import type { User, LoginCredentials, AuthResponse } from "@/@types";
 // === AUTENTICACIÓN ===
 
 export const login = async (
-	credentials: LoginCredentials
+	credentials: LoginCredentials,
 ): Promise<AuthResponse> => {
 	try {
 		const response = await fetch(`${apiService["baseURL"]}/api/auth/login`, {
@@ -55,7 +55,7 @@ export const getCurrentUser = async (): Promise<User> => {
 
 export const setPasswordForUnverifiedUser = async (
 	username: string,
-	newPassword: string
+	newPassword: string,
 ): Promise<{ success: boolean; message: string }> => {
 	try {
 		const response = (await apiService.post(`/api/auth/set-initial-password`, {
@@ -74,6 +74,58 @@ export const setPasswordForUnverifiedUser = async (
 	} catch (error) {
 		console.error("Error estableciendo contraseña:", error);
 		throw error;
+	}
+};
+
+/**
+ * Validar el token de restablecimiento de contraseña
+ */
+export const validateResetToken = async (
+	token: string,
+): Promise<{ success: boolean; message: string; username?: string }> => {
+	try {
+		const response = await fetch(
+			`${apiService["baseURL"]}/api/public/restablecimientos/verify/${token}`,
+		);
+
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error("Error validando token:", error);
+		return {
+			success: false,
+			message: "Error al validar el token",
+		};
+	}
+};
+
+/**
+ * Restablecer la contraseña con un token válido
+ */
+export const resetPasswordWithToken = async (
+	token: string,
+	newPassword: string,
+): Promise<{ success: boolean; message: string }> => {
+	try {
+		const response = await fetch(
+			`${apiService["baseURL"]}/api/public/restablecimientos/reset-password`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ token, newPassword }),
+			},
+		);
+
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error("Error restableciendo contraseña:", error);
+		return {
+			success: false,
+			message: "Error al restablecer la contraseña",
+		};
 	}
 };
 
@@ -109,7 +161,7 @@ export const postApiCone = async (
 		id_cita: number;
 		cantidad_citas: number;
 		old_estado?: string;
-	}
+	},
 ): Promise<unknown> => {
 	try {
 		const response = await fetch(`${env.API_CONEURO_RESULTADOS}${endpoint}`, {
