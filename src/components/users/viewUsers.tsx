@@ -427,7 +427,7 @@ const ViewUsers: React.FC = () => {
 					<div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden sm:my-3 sm:align-middle sm:max-w-lg sm:w-full">
 						<div className="bg-white dark:bg-gray-800 sm:p-3 sm:pb-4">
 							<div className="sm:flex sm:items-center content-center">
-								<div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-14 sm:w-14">
+								<div className="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-14 sm:w-14">
 									<span className="material-symbols-rounded text-red-600 dark:text-red-400">
 										warning
 									</span>

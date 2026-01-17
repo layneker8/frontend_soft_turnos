@@ -25,7 +25,7 @@ export default function Buttons({
 				permissions={[USER_PERMISSIONS.READ, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
+					className="border border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onView(row)}
 				>
 					<span className="material-symbols-rounded text-sm! text-secondary-700! ">
@@ -37,7 +37,7 @@ export default function Buttons({
 				permissions={[USER_PERMISSIONS.UPDATE, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
+					className="border border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow"
 					onClick={() => onEdit(row)}
 				>
 					<span className="material-symbols-rounded text-sm! text-secondary-700!">
@@ -49,7 +49,7 @@ export default function Buttons({
 				permissions={[USER_PERMISSIONS.DELETE, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
+					className="border border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
 					onClick={() => onDelete(row)}
 					disabled={row.id_usuario === user?.id}
 				>
@@ -62,7 +62,7 @@ export default function Buttons({
 				permissions={[USER_PERMISSIONS.UPDATE, USER_PERMISSIONS.MANAGE]}
 			>
 				<button
-					className="border-1 border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
+					className="border border-secondary-500 text-white px-2 py-1 rounded hover:bg-primary-100 shadow disabled:opacity-50 disabled:cursor-not-allowed!"
 					title={`${
 						!row.status_verified
 							? "Enviar correo para restablecimiento de contraseña"
