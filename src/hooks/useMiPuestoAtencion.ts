@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { CancelarTurno, LlamarTurnoData } from "@/@types";
 import { miPuestoService } from "@/services/miPuestoService";
 import { useMiPuestoStore, useToastStore } from "@/stores";
@@ -25,6 +25,9 @@ export const useMiPuestoAtencion = () => {
 	} = useMiPuestoStore();
 
 	const [loading, setLoading] = useState(false);
+	// Guards para evitar llamadas duplicadas a cargarPausasActual
+	const lastPausaFetchIdRef = useRef<number | null>(null);
+	const isFetchingPausaRef = useRef<boolean>(false);
 
 	const { addToast } = useToastStore();
 	const { hasAnyPermission } = usePermissions();
@@ -35,7 +38,7 @@ export const useMiPuestoAtencion = () => {
 
 	const parseBackendError = useCallback(
 		(
-			err: unknown
+			err: unknown,
 		): {
 			message: string;
 			fieldErrors?: Record<string, string>;
@@ -68,13 +71,13 @@ export const useMiPuestoAtencion = () => {
 					Object.entries(payload.errors as Record<string, unknown>).forEach(
 						([k, v]) => {
 							if (typeof v === "string") fieldErrors![k] = v;
-						}
+						},
 					);
 				}
 			}
 			return { message, fieldErrors };
 		},
-		[]
+		[],
 	);
 
 	// const canRead = hasAnyPermission([TURNO_PERMISSIONS.READ]);
@@ -114,9 +117,8 @@ export const useMiPuestoAtencion = () => {
 		async (usuario_id: number) => {
 			setLoading(true);
 			try {
-				const cubiculos = await cubiculoService.getCubiculosAsignacionByUser(
-					usuario_id
-				);
+				const cubiculos =
+					await cubiculoService.getCubiculosAsignacionByUser(usuario_id);
 				setCubiculosDisponibles(cubiculos ? [...cubiculos] : []);
 			} catch (error) {
 				const { message } = parseBackendError(error);
@@ -129,7 +131,7 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[addToast, parseBackendError, setCubiculosDisponibles]
+		[addToast, parseBackendError, setCubiculosDisponibles],
 	);
 
 	// Seleccionar cubículo
@@ -139,7 +141,7 @@ export const useMiPuestoAtencion = () => {
 			try {
 				const puesto = await miPuestoService.seleccionarCubiculo(
 					cubiculo_id,
-					usuario_id
+					usuario_id,
 				);
 				setPuestoActual(puesto);
 				setEstadoCubiculo("Disponible");
@@ -161,25 +163,36 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[addToast, parseBackendError, setPuestoActual, setEstadoCubiculo]
+		[addToast, parseBackendError, setPuestoActual, setEstadoCubiculo],
 	);
 
 	const cargarPausasActual = useCallback(
 		async (id_atencion: number) => {
+			// Evitar llamadas concurrentes y repetidas por el mismo id
+			if (isFetchingPausaRef.current) return;
+			if (lastPausaFetchIdRef.current === id_atencion) return;
+			isFetchingPausaRef.current = true;
 			setLoading(true);
 			try {
 				const pausa = await miPuestoService.getPausaActual(id_atencion);
 				if (pausa) {
 					setPausaActual(pausa);
 					setEstadoCubiculo("Pausado");
+				} else {
+					lastPausaFetchIdRef.current = id_atencion;
+				}
+
+				if (pausa) {
+					lastPausaFetchIdRef.current = id_atencion;
 				}
 			} catch (error) {
 				console.error("Error cargando pausas actuales:", error);
 			} finally {
+				isFetchingPausaRef.current = false;
 				setLoading(false);
 			}
 		},
-		[setPausaActual, setEstadoCubiculo]
+		[setPausaActual, setEstadoCubiculo],
 	);
 
 	// Cargar puesto actual
@@ -190,7 +203,7 @@ export const useMiPuestoAtencion = () => {
 				const puesto = await miPuestoService.getMiPuestoActual(usuario_id);
 				setPuestoActual(puesto);
 				if (puesto) {
-					setEstadoCubiculo("Disponible");
+					setEstadoCubiculo(puesto.estado_cubiculo);
 				}
 			} catch (error) {
 				console.error("Error cargando puesto actual:", error);
@@ -199,7 +212,7 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[setPuestoActual, setEstadoCubiculo]
+		[setPuestoActual, setEstadoCubiculo],
 	);
 
 	// Llamar turno
@@ -247,7 +260,7 @@ export const useMiPuestoAtencion = () => {
 			setTiempoTranscurrido,
 			parseBackendError,
 			puestoActual,
-		]
+		],
 	);
 
 	// Rellamar turno
@@ -283,7 +296,7 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[canCall, addToast, setTurnoActual, parseBackendError]
+		[canCall, addToast, setTurnoActual, parseBackendError],
 	);
 
 	// Atender turno
@@ -354,7 +367,7 @@ export const useMiPuestoAtencion = () => {
 				});
 				await miPuestoService.cambiarEstadoCubiculo(
 					puestoActual.id,
-					"Disponible"
+					"Disponible",
 				);
 				// actualizamos el estado en coneuroresultados siempre y cuando sea una cita
 				if (turnoActual.is_cita) {
@@ -400,7 +413,7 @@ export const useMiPuestoAtencion = () => {
 			setTurnoActual,
 			setEstadoCubiculo,
 			setTiempoTranscurrido,
-		]
+		],
 	);
 
 	// Cancelar turno
@@ -450,7 +463,7 @@ export const useMiPuestoAtencion = () => {
 			setEstadoCubiculo,
 			setTiempoTranscurrido,
 			parseBackendError,
-		]
+		],
 	);
 
 	// Pausar cubículo con motivo
@@ -494,7 +507,7 @@ export const useMiPuestoAtencion = () => {
 			setEstadoCubiculo,
 			setPausaActual,
 			parseBackendError,
-		]
+		],
 	);
 
 	// Reanudar cubículo
@@ -599,7 +612,7 @@ export const useMiPuestoAtencion = () => {
 				setLoading(false);
 			}
 		},
-		[addToast, parseBackendError]
+		[addToast, parseBackendError],
 	);
 
 	// Efecto para cargar el turno actual cuando cambia el puestoActual
@@ -610,9 +623,15 @@ export const useMiPuestoAtencion = () => {
 			if (!puestoActual) return;
 			setLoading(true);
 			try {
-				const turno = await miPuestoService.getTurnoActual(puestoActual.id);
-				if (isMounted) {
-					setTurnoActual(turno);
+				if (estadoCubiculo !== "Pausado") {
+					const turno = await miPuestoService.getTurnoActual(puestoActual.id);
+					if (isMounted) {
+						setTurnoActual(turno);
+					}
+				} else {
+					if (isMounted) {
+						setTurnoActual(null);
+					}
 				}
 			} catch (error) {
 				console.error("Error cargando turno actual del puesto:", error);

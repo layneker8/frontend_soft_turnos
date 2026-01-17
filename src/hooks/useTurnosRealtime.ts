@@ -249,6 +249,7 @@ export const useTurnosRealtime = ({
 				socketInstance.on("turno:atendiendo", handleTurnoAtendiendo);
 				socketInstance.on("turno:finalizado", handleTurnoFinalizado);
 				socketInstance.on("turno:cancelado", handleTurnoCancelado);
+				socketInstance.on("queue:inicial", handleColaTurnos);
 				socketInstance.on("queue:turnos", handleColaTurnos);
 
 				console.log("✅ Listeners registrados correctamente");

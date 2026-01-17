@@ -30,7 +30,7 @@ interface AuthState {
 	loadUserPermissions: () => Promise<void>; // Nueva función para cargar permisos
 	setPasswordForUnverified: (
 		username: string,
-		password: string
+		password: string,
 	) => Promise<{ success: boolean; message: string }>;
 	closeSetPasswordModal: () => void;
 
@@ -100,12 +100,15 @@ export const useAuthStore = create<AuthState>()(
 						}
 
 						// Configurar revalidación periódica de permisos (cada 5 minutos)
-						const newInterval = setInterval(async () => {
-							const currentState = get();
-							if (currentState.isAuthenticated) {
-								await currentState.loadUserPermissions();
-							}
-						}, 5 * 60 * 1000); // 5 minutos
+						const newInterval = setInterval(
+							async () => {
+								const currentState = get();
+								if (currentState.isAuthenticated) {
+									await currentState.loadUserPermissions();
+								}
+							},
+							5 * 60 * 1000,
+						); // 5 minutos
 
 						set({ permissionsInterval: newInterval });
 					} else {
@@ -321,7 +324,7 @@ export const useAuthStore = create<AuthState>()(
 			// Establecer contraseña para usuario no verificado
 			setPasswordForUnverified: async (
 				username: string,
-				password: string
+				password: string,
 			): Promise<{ success: boolean; message: string }> => {
 				try {
 					const result = await apiSetPassword(username, password);
@@ -363,6 +366,6 @@ export const useAuthStore = create<AuthState>()(
 				permissionsLoaded: state.permissionsLoaded,
 				userPermissions: state.userPermissions,
 			}),
-		}
-	)
+		},
+	),
 );

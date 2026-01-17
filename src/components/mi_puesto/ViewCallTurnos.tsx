@@ -14,7 +14,9 @@ interface ViewCallTurnosProps {
 	miPuestoAtencion: ReturnType<typeof useMiPuestoAtencion>;
 }
 
-export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps) {
+export default function ViewCallTurnos({
+	miPuestoAtencion,
+}: ViewCallTurnosProps) {
 	const { user, checkPermission } = useAuthStore();
 	const {
 		puestoActual,
@@ -31,7 +33,6 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 		cargarPausasActual,
 		atenderTurno,
 		liberarCubiculo,
-		cargarTurnosEnColaPorSede,
 	} = miPuestoAtencion;
 
 	// hook de turnos en tiempo real
@@ -69,7 +70,7 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 		} else {
 			// Quitamos las citas de la lista de turnos
 			const turnosSinCitas = turnosCola.turnos.filter(
-				(turno) => !turno.is_cita
+				(turno) => !turno.is_cita,
 			);
 			filteredTurnos = turnosSinCitas;
 		}
@@ -78,56 +79,16 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 			total: filteredTurnos.length,
 		});
 	}, [turnosCola, checkPermission, user?.identificacion]);
-	// Actualizar hora cada segundo
-	// useEffect(() => {
-	// 	const updateTime = () => {
-	// 		const now = new Date();
-	// 		let hours = now.getHours();
-	// 		const minutes = now.getMinutes();
-	// 		const ampm = hours >= 12 ? "PM" : "AM";
-	// 		hours = hours % 12;
-	// 		hours = hours ? hours : 12;
-	// 		const minutesStr = minutes < 10 ? "0" + minutes : minutes;
-	// 		setHoraActual(`${hours}:${minutesStr} ${ampm}`);
-	// 	};
-
-	// 	updateTime();
-	// 	const interval = setInterval(updateTime, 1000);
-
-	// 	return () => clearInterval(interval);
-	// }, []);
 
 	// Cuando se carga el componente, cargar pausas actuales
 	useEffect(() => {
-		const loadData = async () => {
-			if (puestoActual?.id) {
-				cargarPausasActual(puestoActual.id);
-			}
-			if (user?.id_sede) {
-				const turnos = await cargarTurnosEnColaPorSede(user.id_sede);
-				if (
-					turnos &&
-					typeof turnos === "object" &&
-					"data" in turnos &&
-					"total" in turnos
-				) {
-					setTurnosEnCola(turnos);
-				} else {
-					setTurnosEnCola({ data: [], total: 0 });
-				}
-			}
-		};
-		loadData();
+		if (puestoActual?.id && estadoCubiculo === "Pausado") {
+			cargarPausasActual(puestoActual.id);
+		}
 		if (estadoCubiculo === "Pausado") {
 			setShowPausaActivaModal(true);
 		}
-	}, [
-		puestoActual?.id,
-		cargarPausasActual,
-		estadoCubiculo,
-		cargarTurnosEnColaPorSede,
-		user?.id_sede,
-	]);
+	}, [puestoActual?.id, cargarPausasActual, estadoCubiculo, user?.id_sede]);
 
 	// Formatear tiempo transcurrido en MM:SS
 	const formatearTiempo = (segundos: number): string => {
@@ -479,7 +440,7 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 													</p>
 													<p className="text-xl font-bold text-text-light dark:text-text-dark">
 														{formatearTiempo(
-															calculateTimeInQueue(turno.fecha_creacion || "")
+															calculateTimeInQueue(turno.fecha_creacion || ""),
 														)}
 													</p>
 												</div>
@@ -552,7 +513,7 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 												hour: "2-digit",
 												minute: "2-digit",
 												hour12: true,
-											}
+											},
 										)}
 									</p>
 								</div>
@@ -594,7 +555,7 @@ export default function ViewCallTurnos({ miPuestoAtencion }: ViewCallTurnosProps
 											</p>
 											<p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">
 												{new Date(
-													turnoActual.cita.fecha_asignacion
+													turnoActual.cita.fecha_asignacion,
 												).toLocaleString("es-ES", {
 													day: "2-digit",
 													month: "long",

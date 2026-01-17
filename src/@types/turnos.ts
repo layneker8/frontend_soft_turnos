@@ -117,6 +117,7 @@ export interface TurnoSocketEvents {
 	"turno:finalizado": (turno: TurnoDisplayData) => void;
 	"turno:cancelado": (turno: TurnoDisplayData) => void;
 	"queue:turnos": (data: DataTurnosEnCola) => void;
+	"queue:inicial": (data: DataTurnosEnCola) => void;
 }
 
 // Eventos que el cliente puede emitir al servidor
