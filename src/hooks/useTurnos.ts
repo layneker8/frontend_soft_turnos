@@ -107,7 +107,6 @@ export const useTurnos = () => {
 			ok: boolean;
 			message?: string;
 			paciente?: FullCliente;
-			cita?: DataCitaPrevia[];
 		}> => {
 			if (!canRead) {
 				addToast({
@@ -124,13 +123,7 @@ export const useTurnos = () => {
 				const clientData = await clientServices.findClientByIdentification(
 					identification
 				);
-
-				// en caso que exista paciente buscar si tiene cita previa
-				const existCitaPrevia = await clientServices.checkCitaPrevia(
-					identification
-				);
-
-				return { ok: true, paciente: clientData, cita: existCitaPrevia };
+				return { ok: true, paciente: clientData};
 			} catch (err) {
 				const { message } = parseBackendError(err);
 				return { ok: false, message };
@@ -140,6 +133,34 @@ export const useTurnos = () => {
 		},
 		[canRead, addToast, parseBackendError]
 	);
+	// BUscar cita previa en coneuroresultados
+	const checkCitaPrevia = useCallback(
+		async (
+			identification: string
+		): Promise<{ ok: boolean; message?: string; data?: DataCitaPrevia[] }> => {
+			if (!canRead) {
+				addToast({
+					type: "error",
+					title: "Sin permisos",
+					message:
+						"No puedes ver información de clientes, por favor contacta al administrador",
+				});
+				return { ok: false, message: "Sin permisos" };
+			}	
+			setLoading(true);
+			try {
+				const citaData = await clientServices.checkCitaPrevia(identification);
+				return { ok: true, data: citaData };
+			} catch (err) {
+				const { message } = parseBackendError(err);
+				return { ok: false, message };
+			} finally {
+				setLoading(false);
+			}
+		},
+		[canRead, addToast, parseBackendError]
+	);
+	// buscamos cliente en la base de datos local
 	const findClientLocal = useCallback(
 		async (
 			identification: string
@@ -212,5 +233,6 @@ export const useTurnos = () => {
 		permissionsLoading,
 		findClient,
 		findClientLocal,
+		checkCitaPrevia,
 	};
 };

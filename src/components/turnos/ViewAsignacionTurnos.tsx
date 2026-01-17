@@ -36,6 +36,7 @@ const ViewCrearTurnos: React.FC = () => {
 		loading: turnosLoading,
 		findClient,
 		findClientLocal,
+		checkCitaPrevia,
 	} = useTurnos();
 
 	// Custom hooks
@@ -77,7 +78,7 @@ const ViewCrearTurnos: React.FC = () => {
 	}, [loadServices]);
 
 	const [state, setState] = useState<stateAsignacionTurnos>({
-		identification: "1093756959",
+		identification: "",
 		nombre_cliente: "",
 		email: "",
 		telefono: "",
@@ -146,8 +147,10 @@ const ViewCrearTurnos: React.FC = () => {
 
 		if (infoClient.ok && infoClient.paciente) {
 			clientData = infoClient.paciente;
-			if (infoClient.cita && infoClient.cita.length > 0) {
-				const cantidadCitas = infoClient.cita.length;
+			// buscamos si tiene cita previa
+			const citaPrevia = await checkCitaPrevia(identificationStr);
+			if (citaPrevia.data && citaPrevia.data.length > 0) {
+				const cantidadCitas = citaPrevia.data.length;
 				addToast({
 					type: "info",
 					title: `El usuario tiene ${cantidadCitas} cita(s) en el día`,
@@ -155,7 +158,7 @@ const ViewCrearTurnos: React.FC = () => {
 						"Por favor, verifique las citas existentes antes de asignar un nuevo turno.",
 				});
 				setOpenCitasModal(true);
-				setCitasPrevias(infoClient.cita);
+				setCitasPrevias(citaPrevia.data);
 			}
 		} else {
 			setCitasPrevias([]);
@@ -193,7 +196,6 @@ const ViewCrearTurnos: React.FC = () => {
 	};
 
 	const handleCitaPreviaSubmit = (cita: DataCitaPrevia): boolean => {
-		console.log("id_cita", cita.id_cita);
 		setOpenCitasModal(false);
 		setCitaSeleccionada(cita);
 
@@ -550,7 +552,7 @@ const ViewCrearTurnos: React.FC = () => {
 											<p className="text-xs text-text-light dark:text-text-dark mb-1">
 												<strong className="text-primary-700">Fecha:</strong>{" "}
 												{new Date(
-													citaSeleccionada.fecha_asignacion
+													citaSeleccionada.fecha_asignacion,
 												).toLocaleString("es-ES", {
 													year: "numeric",
 													month: "long",
