@@ -5,6 +5,7 @@ export interface FullUser {
 	nombre_user: string;
 	usuario_user: string;
 	status_user: boolean;
+	status_verified: boolean;
 	correo_user?: string;
 	id_rol: number;
 	rol: string;

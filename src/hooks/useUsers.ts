@@ -290,6 +290,26 @@ export const useUsers = () => {
 		[canRead, addToast]
 	);
 
+	// enviar correo para restablecimiento de contraseña o verificación
+	const sendEmailToUser = useCallback(
+		async (
+			id: number,
+			mode: "reset_password" | "verify_account" = "reset_password"
+		): Promise<{ ok: boolean; message?: string }> => {
+			if (!canUpdate) {
+				return { ok: false, message: "Sin permisos" };
+			}
+			try {
+				const sendMail = await userService.sendEmailToUser(id, mode);
+				return sendMail;
+			} catch (err) {
+				const { message } = parseBackendError(err);
+				return { ok: false, message };
+			}
+		},
+		[canUpdate, parseBackendError]
+	);
+
 	// Cargar datos iniciales
 	useEffect(() => {
 		if (canRead) {
@@ -320,6 +340,7 @@ export const useUsers = () => {
 		updateUser,
 		deleteUser,
 		getUserById,
+		sendEmailToUser,
 
 		// Utilidades
 		checkUserPermission,

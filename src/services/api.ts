@@ -53,6 +53,30 @@ export const getCurrentUser = async (): Promise<User> => {
 	return apiService.get("/api/auth/me");
 };
 
+export const setPasswordForUnverifiedUser = async (
+	username: string,
+	newPassword: string
+): Promise<{ success: boolean; message: string }> => {
+	try {
+		const response = (await apiService.post(`/api/auth/set-initial-password`, {
+			username,
+			newPassword,
+		})) as { success: boolean; message: string };
+
+		if (!response.success) {
+			throw new Error(response.message || "Error al establecer la contraseña");
+		}
+
+		return {
+			success: true,
+			message: response.message || "Contraseña establecida correctamente",
+		};
+	} catch (error) {
+		console.error("Error estableciendo contraseña:", error);
+		throw error;
+	}
+};
+
 // === TURNOS ===
 export const getApiCone = async (endpoint: string): Promise<unknown> => {
 	try {

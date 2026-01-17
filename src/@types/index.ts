@@ -37,6 +37,7 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
 	status?: number;
+	verificado?: boolean;
 	success: boolean;
 	user?: User;
 	message?: string;

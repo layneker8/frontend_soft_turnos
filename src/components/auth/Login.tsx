@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useToastStore } from "@/stores";
+import SetPasswordModal from "./SetPasswordModal";
 import type { LoginCredentials } from "@/@types";
 
 const Login: React.FC = () => {
@@ -12,7 +13,17 @@ const Login: React.FC = () => {
 	const [showPassword, setShowPassword] = useState<boolean>(false);
 	const navigate = useNavigate();
 	// Zustand stores
-	const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+	const {
+		login,
+		isAuthenticated,
+		isLoading,
+		error,
+		clearError,
+		showSetPasswordModal,
+		unverifiedUsername,
+		setPasswordForUnverified,
+		closeSetPasswordModal,
+	} = useAuthStore();
 	const { addToast } = useToastStore();
 
 	useEffect(() => {
@@ -76,6 +87,76 @@ const Login: React.FC = () => {
 					"Has excedido el número de intentos de inicio de sesión. Por favor, espera un momento e inténtalo de nuevo.",
 			});
 		}
+	};
+
+	const handleSetPassword = async (password: string) => {
+		if (!unverifiedUsername) return;
+		const username = unverifiedUsername;
+
+		const setPwdResult = await setPasswordForUnverified(username, password);
+
+		if (!setPwdResult.success) {
+			addToast({
+				type: "error",
+				title: "Error",
+				message: setPwdResult.message || "No se pudo establecer la contraseña",
+			});
+			throw new Error(setPwdResult.message);
+		}
+
+		// Intentar iniciar sesión inmediatamente con la nueva contraseña
+		clearError();
+		const loginResult = await login({ username, password });
+
+		if (loginResult.status === 200 && loginResult.success) {
+			addToast({
+				type: "success",
+				title: "Sesión iniciada",
+				message: "Contraseña establecida e inicio de sesión exitoso",
+			});
+			navigate("/dashboard", { replace: true });
+			return;
+		}
+
+		// Si no se pudo iniciar sesión, dejamos preparado el formulario para que lo intente manualmente
+		setFormData({ username, password: "" });
+
+		if (loginResult.status === 401) {
+			addToast({
+				type: "error",
+				title: "Error de autenticación",
+				message: loginResult.error || "Usuario o contraseña incorrectos",
+			});
+			return;
+		}
+
+		if (loginResult.status === 400 || loginResult.status === 500) {
+			addToast({
+				type: "error",
+				title: "Error",
+				message:
+					loginResult.error ||
+					"Hubo un problema al iniciar sesión. Por favor, inténtelo de nuevo más tarde.",
+			});
+			return;
+		}
+
+		if (loginResult.status === 429) {
+			addToast({
+				type: "warning",
+				title: "Demasiados intentos",
+				message:
+					"Has excedido el número de intentos de inicio de sesión. Por favor, espera un momento e inténtalo de nuevo.",
+			});
+			return;
+		}
+
+		// Fallback genérico
+		addToast({
+			type: "error",
+			title: "Error",
+			message: "No se pudo iniciar sesión automáticamente",
+		});
 	};
 
 	return (
@@ -161,7 +242,7 @@ const Login: React.FC = () => {
 							</div>
 						</div>
 
-						<div className="flex items-center justify-end">
+						{/* <div className="flex items-center justify-end">
 							<div className="text-sm">
 								<Link
 									to="/forgot-password"
@@ -170,7 +251,7 @@ const Login: React.FC = () => {
 									¿Olvidé mi contraseña?
 								</Link>
 							</div>
-						</div>
+						</div> */}
 
 						<div>
 							<button
@@ -196,6 +277,14 @@ const Login: React.FC = () => {
 					</form>
 				</div>
 			</div>
+
+			{/* Modal para establecer contraseña */}
+			<SetPasswordModal
+				isOpen={showSetPasswordModal}
+				username={unverifiedUsername || ""}
+				onClose={closeSetPasswordModal}
+				onSubmit={handleSetPassword}
+			/>
 		</div>
 	);
 };

@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { login as apiLogin, logout as apiLogout } from "@/services/api";
+import {
+	login as apiLogin,
+	logout as apiLogout,
+	setPasswordForUnverifiedUser as apiSetPassword,
+} from "@/services/api";
 import { apiService } from "@/services/apiService";
 import type { LoginCredentials, AuthResponse, User } from "@/@types";
 
@@ -15,6 +19,8 @@ interface AuthState {
 	permissionsLoaded: boolean; // Flag para saber si ya se cargaron los permisos
 	permissionsInterval: NodeJS.Timeout | null; // Intervalo para revalidación de permisos
 	loadingPermissions: boolean; // Flag para evitar múltiples cargas simultáneas
+	showSetPasswordModal: boolean; // Modal para establecer contraseña
+	unverifiedUsername: string | null; // Username del usuario no verificado
 
 	// Acciones
 	login: (credentials: LoginCredentials) => Promise<AuthResponse>;
@@ -22,6 +28,11 @@ interface AuthState {
 	clearError: () => void;
 	setLoading: (loading: boolean) => void;
 	loadUserPermissions: () => Promise<void>; // Nueva función para cargar permisos
+	setPasswordForUnverified: (
+		username: string,
+		password: string
+	) => Promise<{ success: boolean; message: string }>;
+	closeSetPasswordModal: () => void;
 
 	// Utilidades
 	getAuthHeaders: () => Record<string, string>;
@@ -45,6 +56,8 @@ export const useAuthStore = create<AuthState>()(
 			permissionsLoaded: false,
 			permissionsInterval: null,
 			loadingPermissions: false,
+			showSetPasswordModal: false,
+			unverifiedUsername: null,
 
 			// Acción de login
 			login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -52,6 +65,21 @@ export const useAuthStore = create<AuthState>()(
 
 				try {
 					const data = await apiLogin(credentials);
+
+					if (data.verificado === false) {
+						set({
+							isLoading: false,
+							showSetPasswordModal: true,
+							unverifiedUsername: credentials.username,
+						});
+
+						return {
+							success: false,
+							error:
+								"Usuario no verificado. Por favor asigne una contraseña antes de iniciar sesión para continuar.",
+							verificado: false,
+						};
+					}
 
 					if (data.success) {
 						set({
@@ -131,6 +159,8 @@ export const useAuthStore = create<AuthState>()(
 						permissionsLoaded: false,
 						permissionsInterval: null,
 						loadingPermissions: false,
+						showSetPasswordModal: false,
+						unverifiedUsername: null,
 					});
 
 					localStorage.removeItem("auth-storage");
@@ -226,6 +256,7 @@ export const useAuthStore = create<AuthState>()(
 
 				return userPermissions.includes(permission);
 			},
+
 			// Obtener todos los permisos del usuario
 			getUserPermissions: (): string[] => {
 				const { userPermissions, isAuthenticated } = get();
@@ -285,6 +316,43 @@ export const useAuthStore = create<AuthState>()(
 				} catch (error) {
 					console.error("Error validando sesión:", error);
 				}
+			},
+
+			// Establecer contraseña para usuario no verificado
+			setPasswordForUnverified: async (
+				username: string,
+				password: string
+			): Promise<{ success: boolean; message: string }> => {
+				try {
+					const result = await apiSetPassword(username, password);
+
+					if (result.success) {
+						// Cerrar el modal después de establecer la contraseña exitosamente
+						set({
+							showSetPasswordModal: false,
+							unverifiedUsername: null,
+						});
+					}
+
+					return result;
+				} catch (error) {
+					const errorMessage =
+						error instanceof Error
+							? error.message
+							: "Error al establecer la contraseña";
+					return {
+						success: false,
+						message: errorMessage,
+					};
+				}
+			},
+
+			// Cerrar modal de establecer contraseña
+			closeSetPasswordModal: () => {
+				set({
+					showSetPasswordModal: false,
+					unverifiedUsername: null,
+				});
 			},
 		}),
 		{

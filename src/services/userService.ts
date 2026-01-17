@@ -150,6 +150,29 @@ export class UserService {
 			throw error;
 		}
 	}
+
+	/**
+	 * Enviar correo de restablecimiento de contraseña al usuario
+	 */
+	async sendEmailToUser(
+		id: number,
+		mode: "reset_password" | "verify_account" = "reset_password"
+	): Promise<{ ok: boolean; message?: string }> {
+		try {
+			const response = (await apiService.post(`/api/users/send-email`, {
+				id_usuario: id,
+				mode,
+			})) as { success: boolean; message: string };
+
+			return {
+				ok: true,
+				message: response.message,
+			};
+		} catch (error) {
+			console.error(`Error enviando correo al usuario ${id}:`, error);
+			return { ok: false, message: "Error enviando correo" };
+		}
+	}
 }
 
 // Instancia singleton del servicio

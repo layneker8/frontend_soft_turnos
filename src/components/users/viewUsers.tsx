@@ -11,6 +11,7 @@ import Buttons from "./Buttons";
 import type { FullUser, CreateUserData, UpdateUserData } from "@/@types/users";
 import Loading from "../common/Loading";
 import Modal from "../common/Modal";
+import { useToastStore } from "@/stores/toastStore";
 
 const ViewUsers: React.FC = () => {
 	const {
@@ -26,7 +27,9 @@ const ViewUsers: React.FC = () => {
 		updateUser,
 		deleteUser,
 		getUserById,
+		sendEmailToUser,
 	} = useUsers();
+	const { addToast } = useToastStore();
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<FullUser | null>(null);
@@ -58,6 +61,24 @@ const ViewUsers: React.FC = () => {
 			selector: (row) => row.nombre_user,
 			wrap: true,
 			sortable: true,
+			minWidth: "250px",
+			cell: (row) => (
+				<div className="flex justify-start items-center">
+					<span
+						className={`material-symbols-rounded mr-1 ${
+							!row.status_verified ? "text-green-500" : "text-red-500"
+						}`}
+						title={`${
+							!row.status_verified
+								? "Usuario verificado"
+								: "Usuario no verificado"
+						}`}
+					>
+						{!row.status_verified ? "verified_user" : "safety_check"}
+					</span>
+					<span>{row.nombre_user}</span>
+				</div>
+			),
 		},
 		{
 			id: "usuario_user",
@@ -108,6 +129,7 @@ const ViewUsers: React.FC = () => {
 					onView={handleView}
 					onEdit={handleEditUser}
 					onDelete={handleDelete}
+					onForgetEmail={handleForgetEmail}
 				/>
 			),
 			ignoreRowClick: true, // evita que el click en el botón dispare eventos de la fila
@@ -130,6 +152,24 @@ const ViewUsers: React.FC = () => {
 
 		return matchesSearch && matchesSede && matchesEstado;
 	});
+
+	const handleForgetEmail = async (user: FullUser) => {
+		const mode = user.status_verified ? "verify_account" : "reset_password";
+		const sendMail = await sendEmailToUser(user.id_usuario, mode);
+		if (sendMail.ok) {
+			addToast({
+				type: "success",
+				title: "Correo enviado",
+				message: "El correo fue enviado exitosamente al usuario",
+			});
+		} else {
+			addToast({
+				type: "error",
+				title: "Error enviando correo",
+				message: sendMail.message,
+			});
+		}
+	};
 
 	const handleView = async (user: FullUser) => {
 		const fullUser = await getUserById(user.id_usuario);
