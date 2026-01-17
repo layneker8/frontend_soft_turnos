@@ -28,7 +28,7 @@ export const useUsers = () => {
 
 	const parseBackendError = useCallback(
 		(
-			err: unknown
+			err: unknown,
 		): {
 			message: string;
 			fieldErrors?: Record<string, string>;
@@ -61,13 +61,13 @@ export const useUsers = () => {
 					Object.entries(payload.errors as Record<string, unknown>).forEach(
 						([k, v]) => {
 							if (typeof v === "string") fieldErrors![k] = v;
-						}
+						},
 					);
 				}
 			}
 			return { message, fieldErrors };
 		},
-		[]
+		[],
 	);
 
 	// Permisos necesarios
@@ -148,7 +148,7 @@ export const useUsers = () => {
 	 */
 	const createUser = useCallback(
 		async (
-			userData: CreateUserData
+			userData: CreateUserData,
 		): Promise<{
 			ok: boolean;
 			fieldErrors?: Record<string, string>;
@@ -182,7 +182,7 @@ export const useUsers = () => {
 				setSaving(false);
 			}
 		},
-		[canCreate, addToast, parseBackendError]
+		[canCreate, addToast, parseBackendError],
 	);
 
 	/**
@@ -191,7 +191,7 @@ export const useUsers = () => {
 	const updateUser = useCallback(
 		async (
 			id: number,
-			userData: UpdateUserData
+			userData: UpdateUserData,
 		): Promise<{
 			ok: boolean;
 			fieldErrors?: Record<string, string>;
@@ -210,7 +210,7 @@ export const useUsers = () => {
 			try {
 				const updatedUser = await userService.updateUser(id, userData);
 				setUsers((prev) =>
-					prev.map((user) => (user.id_usuario === id ? updatedUser : user))
+					prev.map((user) => (user.id_usuario === id ? updatedUser : user)),
 				);
 
 				addToast({
@@ -227,7 +227,7 @@ export const useUsers = () => {
 				setSaving(false);
 			}
 		},
-		[canUpdate, addToast, parseBackendError]
+		[canUpdate, addToast, parseBackendError],
 	);
 
 	/**
@@ -263,7 +263,7 @@ export const useUsers = () => {
 				setSaving(false);
 			}
 		},
-		[canDelete, addToast, parseBackendError]
+		[canDelete, addToast, parseBackendError],
 	);
 
 	/**
@@ -287,27 +287,33 @@ export const useUsers = () => {
 				return null;
 			}
 		},
-		[canRead, addToast]
+		[canRead, addToast],
 	);
 
 	// enviar correo para restablecimiento de contraseña o verificación
 	const sendEmailToUser = useCallback(
 		async (
-			id: number,
-			mode: "reset_password" | "verify_account" = "reset_password"
+			username: string,
+			mode: "reset_password" | "verify_account" = "reset_password",
 		): Promise<{ ok: boolean; message?: string }> => {
 			if (!canUpdate) {
 				return { ok: false, message: "Sin permisos" };
 			}
 			try {
-				const sendMail = await userService.sendEmailToUser(id, mode);
-				return sendMail;
+				let sendMail = null;
+				if (mode === "verify_account") {
+					sendMail = await userService.sendEmailToUser(username);
+				}
+				if (mode === "reset_password") {
+					sendMail = await userService.sendPasswordResetEmail(username);
+				}
+				return sendMail || { ok: false, message: "Error enviando correo" };
 			} catch (err) {
 				const { message } = parseBackendError(err);
 				return { ok: false, message };
 			}
 		},
-		[canUpdate, parseBackendError]
+		[canUpdate, parseBackendError],
 	);
 
 	// Cargar datos iniciales

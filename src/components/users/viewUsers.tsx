@@ -41,7 +41,7 @@ const ViewUsers: React.FC = () => {
 	const [userToDelete, setUserToDelete] = useState<FullUser | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [formServerError, setFormServerError] = useState<string | undefined>(
-		undefined
+		undefined,
 	);
 	const [formFieldErrors, setFormFieldErrors] = useState<
 		Record<string, string> | undefined
@@ -49,7 +49,7 @@ const ViewUsers: React.FC = () => {
 
 	// Estado local para mostrar loading en envío de correo (sin usar loader del hook)
 	const [sendingEmailUserId, setSendingEmailUserId] = useState<number | null>(
-		null
+		null,
 	);
 
 	// Esperar a que se inicialice el hook
@@ -163,7 +163,7 @@ const ViewUsers: React.FC = () => {
 		try {
 			setSendingEmailUserId(user.id_usuario);
 			const mode = user.status_verified ? "verify_account" : "reset_password";
-			const sendMail = await sendEmailToUser(user.id_usuario, mode);
+			const sendMail = await sendEmailToUser(user.usuario_user, mode);
 			if (sendMail.ok) {
 				addToast({
 					type: "success",
@@ -236,14 +236,14 @@ const ViewUsers: React.FC = () => {
 	};
 
 	const handleModalSubmit = async (
-		userData: CreateUserData | UpdateUserData
+		userData: CreateUserData | UpdateUserData,
 	) => {
 		setFormServerError(undefined);
 		setFormFieldErrors(undefined);
 		if (selectedUser) {
 			const res = await updateUser(
 				selectedUser.id_usuario,
-				userData as UpdateUserData
+				userData as UpdateUserData,
 			);
 			if (!res.ok) {
 				setFormServerError(res.message);

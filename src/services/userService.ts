@@ -42,7 +42,7 @@ export class UserService {
 	async getUsersBySede(id_sede: number): Promise<FullUser[]> {
 		try {
 			const response = (await apiService.get(
-				`/api/users/sede/${id_sede}`
+				`/api/users/sede/${id_sede}`,
 			)) as ApiResponse<FullUser[]>;
 			return response.data || [];
 		} catch (error) {
@@ -58,7 +58,7 @@ export class UserService {
 	async getUserById(id: number): Promise<FullUser> {
 		try {
 			const response = (await apiService.get(
-				`/api/users/${id}`
+				`/api/users/${id}`,
 			)) as ApiResponse<FullUser>;
 			return response.data;
 		} catch (error) {
@@ -75,7 +75,7 @@ export class UserService {
 		try {
 			const response = (await apiService.post(
 				"/api/users/register",
-				userData
+				userData,
 			)) as ApiResponse<FullUser>;
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error creando usuario");
@@ -95,7 +95,7 @@ export class UserService {
 		try {
 			const response = (await apiService.put(
 				`/api/users/${id}`,
-				userData
+				userData,
 			)) as ApiResponse<FullUser>;
 			if ("success" in response && response.success === false) {
 				throw buildResponseError(response, "Error actualizando usuario");
@@ -127,7 +127,7 @@ export class UserService {
 	async getAllSedes(): Promise<FullSede[]> {
 		try {
 			const response = (await apiService.get(
-				"/api/sedes/available"
+				"/api/sedes/available",
 			)) as ApiResponse<FullSede[]>;
 			return response.data || [];
 		} catch (error) {
@@ -155,13 +155,11 @@ export class UserService {
 	 * Enviar correo de restablecimiento de contraseña al usuario
 	 */
 	async sendEmailToUser(
-		id: number,
-		mode: "reset_password" | "verify_account" = "reset_password"
+		username: string,
 	): Promise<{ ok: boolean; message?: string }> {
 		try {
 			const response = (await apiService.post(`/api/users/send-email`, {
-				id_usuario: id,
-				mode,
+				username,
 			})) as { success: boolean; message: string };
 
 			return {
@@ -169,8 +167,34 @@ export class UserService {
 				message: response.message,
 			};
 		} catch (error) {
-			console.error(`Error enviando correo al usuario ${id}:`, error);
+			console.error(`Error enviando correo al usuario ${username}:`, error);
 			return { ok: false, message: "Error enviando correo" };
+		}
+	}
+
+	/**
+	 * Enviar solicitud de restablecimiento de contraseña al usuario
+	 */
+	async sendPasswordResetEmail(
+		username: string,
+	): Promise<{ ok: boolean; message?: string }> {
+		try {
+			const response = (await apiService.post(`/api/restablecimientos`, {
+				username,
+			})) as { success: boolean; message: string };
+			return {
+				ok: true,
+				message: response.message,
+			};
+		} catch (error) {
+			console.error(
+				`Error enviando correo de restablecimiento al usuario ${username}:`,
+				error,
+			);
+			return {
+				ok: false,
+				message: "Error enviando correo de restablecimiento",
+			};
 		}
 	}
 }
